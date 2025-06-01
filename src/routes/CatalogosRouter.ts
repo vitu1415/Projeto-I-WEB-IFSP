@@ -1,5 +1,5 @@
 import { Router } from "express";
-import CatalogoController from "../controller/CatalogoController";
+import CatalogoController from "../controller/CatalogosController";
 
 
 const router = Router();
