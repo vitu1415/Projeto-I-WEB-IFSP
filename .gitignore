@@ -1,0 +1,5 @@
+#ndoe modules
+node_modules/
+
+#arquivo compilados (JS)
+dist/
