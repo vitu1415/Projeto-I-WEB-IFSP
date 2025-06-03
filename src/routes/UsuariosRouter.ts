@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { UsuariosController } from "../controller/UsuariosController";
+import { ataulizarUsuario, cadastrarUsuairos, deletarUsuario, filtrarPorCPF, listarUsuarios } from "../controller/UsuariosController";
 
 const router = Router();
 
-router.post('/', UsuariosController.cadastrarUsuairos);
-router.get('/', UsuariosController.listarUsuarios);
-router.get('/:cpf', UsuariosController.filtrarPorCPF);
-router.put('/:cpf', UsuariosController.ataulizarUsuario);
-router.delete('/:cpf', UsuariosController.deletarUsuario);
+router.post('/', cadastrarUsuairos);
+router.get('/', listarUsuarios);
+router.get('/:cpf', filtrarPorCPF);
+router.put('/:cpf', ataulizarUsuario);
+router.delete('/:cpf', deletarUsuario);
 
 export default router;

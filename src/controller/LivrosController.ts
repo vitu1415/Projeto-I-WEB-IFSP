@@ -1,23 +1,20 @@
 import { Request, Response } from "express";
 
-export class LivrosController{
+//OBRIGATORIO: TITULO, ISBN, AUTOR, EDICAO, EDITORA, CATEGORIA
+export function cadastrarLivro(req: Request, res: Response) {
 
-    //OBRIGATORIO: TITULO, ISBN, AUTOR, EDICAO, EDITORA, CATEGORIA
-    static async cadastrarLivro(req: Request, res: Response){
-        
-    }
-    static async listarLivros(req: Request, res: Response){
-        
-    }
-    static async detalhesLivro(req: Request, res: Response){
-        
-    }
-    static async atualizarLivro(req: Request, res: Response){
-        
-    }
+}
+export function listarLivros(req: Request, res: Response) {
 
-    //para DELETAR nao pode estar emprestado
-    static async deletarLivro(req: Request, res: Response){
-        
-    }
+}
+export function detalhesLivro(req: Request, res: Response) {
+
+}
+export function atualizarLivro(req: Request, res: Response) {
+
+}
+
+//para DELETAR nao pode estar emprestado
+export function deletarLivro(req: Request, res: Response) {
+
 }

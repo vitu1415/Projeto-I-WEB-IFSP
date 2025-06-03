@@ -4,7 +4,7 @@ import { CategoriaUsuarioRepository } from "../repository/CategoriaUsuarioReposi
 export class CategoriaUsuarioService {
     private repository = CategoriaUsuarioRepository.getInstance();
 
-    public listar(): CategoriaUsuario[]{
+    listar(): CategoriaUsuario[]{
         return this.repository.listar();
     }
 }

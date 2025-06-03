@@ -1,11 +1,10 @@
 import { Router } from "express";
-import CatalogoController from "../controller/CatalogosController";
-
+import { listarCategoriaDeUsuario, listarCategoriaLivro,  listarTiposDeCursos } from "../controller/CatalogosController";
 
 const router = Router();
 
-router.get('/categorias-usuario', CatalogoController.listarUsuario);
-router.get('/categorias/livro', CatalogoController.listarCategoriaLivro);
-router.get('/cursos', CatalogoController.listarCursos);
+router.get('/categorias-usuario', listarCategoriaDeUsuario);
+router.get('/categorias/livro', listarCategoriaLivro);
+router.get('/cursos', listarTiposDeCursos);
 
 export default router;

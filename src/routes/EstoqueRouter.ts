@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { EstoqueController } from "../controller/EstoqueController";
+import { cadastroExemplar, listarExmplaresDisponiveis, listarDetalhesExemplar, atualizarDisponibilidade, deletarExemplar } from "../controller/EstoqueController";
 
 const router = Router();
 
-router.post('/', EstoqueController.cadastroExemplar);
-router.get('/', EstoqueController.listarExmplaresDisponiveis);
-router.get('/:codigo', EstoqueController.listarDetalhesExemplar);
-router.put('/:codigo', EstoqueController.atualizarDisponibilidade);
-router.delete('/:codigo', EstoqueController.deletarExemplar);
+router.post('/', cadastroExemplar);
+router.get('/', listarExmplaresDisponiveis);
+router.get('/:codigo', listarDetalhesExemplar);
+router.put('/:codigo', atualizarDisponibilidade);
+router.delete('/:codigo', deletarExemplar);
 
 export default router;

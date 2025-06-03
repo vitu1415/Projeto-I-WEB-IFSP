@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { LivrosController } from "../controller/LivrosController";
+import { cadastrarLivro, listarLivros, detalhesLivro, atualizarLivro, deletarLivro } from "../controller/LivrosController";
 
 const router = Router();
 
-router.post('/', LivrosController.cadastrarLivro);
-router.get('/', LivrosController.listarLivros);
-router.get('/:isbn', LivrosController.detalhesLivro);
-router.put('/:isbn', LivrosController.atualizarLivro);
-router.delete('/:isbn', LivrosController.deletarLivro);
+router.post('/', cadastrarLivro);
+router.get('/', listarLivros);
+router.get('/:isbn', detalhesLivro);
+router.put('/:isbn', atualizarLivro);
+router.delete('/:isbn', deletarLivro);
 
 export default router;

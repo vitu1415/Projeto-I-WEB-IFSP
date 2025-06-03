@@ -1,21 +1,24 @@
 import { Request, Response } from "express";
+import { UsuarioService } from "../service/UsuarioService";
 
-export class UsuariosController{
-    static async cadastrarUsuairos(req: Request, res: Response){
-        
-    }
-    static async listarUsuarios(req: Request, res: Response){
-        
-    }
-    static async filtrarPorCPF(req: Request, res: Response){
-        
-    }
-    static async ataulizarUsuario(req: Request, res: Response){
-        
-    }
+export function cadastrarUsuairos(req: Request, res: Response) {
+    try {
 
-    //so deletar caso nao tenha nenhum emprestimo no nome
-    static async deletarUsuario(req: Request, res: Response){
-        
+    } catch (error) {
+
     }
+}
+export function listarUsuarios(req: Request, res: Response) {
+
+}
+export function filtrarPorCPF(req: Request, res: Response) {
+
+}
+export function ataulizarUsuario(req: Request, res: Response) {
+
+}
+
+//so deletar caso nao tenha nenhum emprestimo no nome
+export function deletarUsuario(req: Request, res: Response) {
+
 }
