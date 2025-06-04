@@ -52,7 +52,32 @@ export class UsuarioService {
         return usuario;
     }
 
-    listarUsuarios(): Usuario[] {
-        return this.repository.listar();
+    listarUsuarios(usuarioData: any): Usuario[] {
+        const { id, nome, cpf, ativo, categoriaUsuario, curso } = usuarioData;
+        console.log(id, nome, cpf, ativo, categoriaUsuario, curso);
+
+        let resultado = this.repository.listar();
+        if (id !== undefined) {
+            resultado = resultado.filter(u => u.id === Number(id));
+        }
+        console.log(resultado);
+        if (nome !== undefined) {
+            resultado = resultado.filter(u => u.nome === nome);
+        }
+        if (cpf !== undefined) {
+            resultado = resultado.filter(u => u.cpf === cpf);
+        }
+        if (ativo !== undefined) {
+            const ativoBool = ativo === true || ativo === 'true';
+            resultado = resultado.filter(u => u.ativo === ativoBool);
+        }
+        if (categoriaUsuario !== undefined) {
+            resultado = resultado.filter(u => u.categoriaUsuario.id === categoriaUsuario.id);
+        }
+        if (curso !== undefined) {
+            resultado = resultado.filter(u => u.curso.id === curso.id);
+        }
+
+        return resultado;
     }
 }

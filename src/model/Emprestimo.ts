@@ -22,4 +22,7 @@ export class Emprestimo{
         this.dataAtraso = dataAtraso;
         this.suspensasaoAte = suspensasaoAte;
     }
+    private gerarId(): number {
+        return Date.now();
+    }
 }

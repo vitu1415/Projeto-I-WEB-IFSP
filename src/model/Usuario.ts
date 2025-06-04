@@ -17,4 +17,8 @@ export class Usuario{
         this.categoriaUsuario = categoriaUsuario;
         this.curso = curso;
     }
+    
+    private gerarId(): number {
+        return Date.now();
+    }
 }

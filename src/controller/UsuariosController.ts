@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { UsuarioService } from "../service/UsuarioService";
+import { get } from "http";
 
 const usuarioService = new UsuarioService();
 export function cadastrarUsuairos(req: Request, res: Response) {
@@ -19,7 +20,7 @@ export function cadastrarUsuairos(req: Request, res: Response) {
 //filtro de query
 export function listarUsuarios(req: Request, res: Response) {
     try{
-        const usuarios = usuarioService.listarUsuarios();
+        const usuarios = usuarioService.listarUsuarios(req.query);
         res.status(200).json(usuarios);
     } catch (error: any) {
         res.status(500).json({ message: error.message });

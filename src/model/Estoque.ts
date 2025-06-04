@@ -13,4 +13,7 @@ export class Estoque {
         this.quantidade_emprestada = quantidade_emprestada;
         this.disponivel = disponivel;
     }
+    private gerarId(): number {
+        return Date.now();
+    }
 }

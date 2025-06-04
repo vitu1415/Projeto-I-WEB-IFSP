@@ -19,4 +19,7 @@ export class Livro{
         this.isbn = isbn;
         this.categoriaLivro = categoriaLivro;
     }
+    private gerarId(): number {
+        return Date.now();
+    }
 }
