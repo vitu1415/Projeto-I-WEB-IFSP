@@ -34,7 +34,7 @@ export class UsuarioService {
             throw new Error("esta faltando dados que sao obrigatorios");
         }
 
-        if(!this.ValidarCPF(cpf)){
+        if (!this.ValidarCPF(cpf)) {
             throw new Error("CPF invalido");
         }
 
@@ -43,37 +43,20 @@ export class UsuarioService {
             throw new Error("CPF ja cadastrado");
         }
 
-        const usuario = new Usuario( nome, cpf, ativo, categoriaUsuario, curso);
+        const usuario = new Usuario(nome, cpf, ativo, categoriaUsuario, curso);
         this.repository.cadastrar(usuario);
         return usuario;
     }
 
     listarUsuarios(usuarioData: any): Usuario[] {
-        const { id, nome, cpf, ativo, categoriaUsuario, curso } = usuarioData;
-        console.log(id, nome, cpf, ativo, categoriaUsuario, curso);
+        return this.repository.filtrarPorCampos(usuarioData);
+    }
 
-        let resultado = this.repository.listar();
-        if (id !== undefined) {
-            resultado = resultado.filter(u => u.id === Number(id));
-        }
-        console.log(resultado);
-        if (nome !== undefined) {
-            resultado = resultado.filter(u => u.nome === nome);
-        }
-        if (cpf !== undefined) {
-            resultado = resultado.filter(u => u.cpf === cpf);
-        }
-        if (ativo !== undefined) {
-            const ativoBool = ativo === true || ativo === 'true';
-            resultado = resultado.filter(u => u.ativo === ativoBool);
-        }
-        if (categoriaUsuario !== undefined) {
-            resultado = resultado.filter(u => u.categoriaUsuario.id === categoriaUsuario.id);
-        }
-        if (curso !== undefined) {
-            resultado = resultado.filter(u => u.curso.id === curso.id);
-        }
+    atualizarUsuario(cpf: any, usuarioData: any): Usuario[] {
+        return this.repository.atualizar(cpf, usuarioData);
+    }
 
-        return resultado;
+    deletarUsuario(cpf: any): void {
+        return this.repository.remover(cpf);
     }
 }

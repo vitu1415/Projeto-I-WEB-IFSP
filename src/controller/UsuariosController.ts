@@ -27,13 +27,40 @@ export function listarUsuarios(req: Request, res: Response) {
     }
 }
 export function filtrarPorCPF(req: Request, res: Response) {
-
+    try{
+        const cpf = req.params.cpf;
+        const usuarios = usuarioService.listarUsuarios(cpf);
+        res.status(200).json(usuarios);
+    } catch (error: any) {
+        res.status(404).json({ message: error.message });
+    }
 }
 export function ataulizarUsuario(req: Request, res: Response) {
-
+    try{
+        const cpf = req.params.cpf;
+        const usuario = usuarioService.atualizarUsuario(cpf, req.body);
+        res.status(200).json(
+            {
+                message: "Usuario atualizado com sucesso",
+                usuario: usuario
+            }
+        );
+    } catch (error: any) {
+        res.status(404).json({ message: error.message });
+    }
 }
 
 //so deletar caso nao tenha nenhum emprestimo no nome
 export function deletarUsuario(req: Request, res: Response) {
-
+    try{
+        const cpf = req.params.cpf;
+        usuarioService.deletarUsuario(cpf);
+        res.status(204).json(
+            {
+                message: "Usuario deletado com sucesso",
+            }
+        );
+    } catch (error: any) {
+        res.status(404).json({ message: error.message });
+    }
 }

@@ -20,4 +20,63 @@ export class UsuarioRepository {
     public cadastrar(usuario: Usuario): void {
         this.usuarios.push(usuario);
     }
+
+    public filtrarPorCampos(usuario: any): Usuario[] {
+        const { id, nome, cpf, ativo, categoriaUsuario, curso } = usuario;
+
+        let resultado = this.listar();
+        if (id !== undefined) {
+            resultado = resultado.filter(u => u.id === Number(id));
+        }
+        console.log(resultado);
+        if (nome !== undefined) {
+            resultado = resultado.filter(u => u.nome === nome);
+        }
+        if (cpf !== undefined) {
+            resultado = resultado.filter(u => u.cpf === cpf);
+        }
+        if (ativo !== undefined) {
+            const ativoBool = ativo === true || ativo === 'true';
+            resultado = resultado.filter(u => u.ativo === ativoBool);
+        }
+        if (categoriaUsuario !== undefined) {
+            resultado = resultado.filter(u => u.categoriaUsuario.id === categoriaUsuario.id);
+        }
+        if (curso !== undefined) {
+            resultado = resultado.filter(u => u.curso.id === curso.id);
+        }
+
+        return resultado;
+    }
+
+    public atualizar(cpf: any, usuario: any): Usuario[] {
+        let resultado = this.filtrarPorCampos(cpf);
+        if(!resultado){
+            throw new Error("Usuario nao encontrado");
+        }
+        const { nome, ativo, categoriaUsuario, curso } = usuario;
+        if (nome !== undefined) {
+            resultado[0].nome = nome;
+        }
+        if (ativo !== undefined) {
+            resultado[0].ativo = ativo;
+        }
+        if (categoriaUsuario !== undefined) {
+            resultado[0].categoriaUsuario = categoriaUsuario;
+        }
+        if (curso !== undefined) {
+            resultado[0].curso = curso;
+        }
+
+        return resultado;
+    }
+
+    public remover(cpf: any): void {
+        const index = this.usuarios.findIndex(u => u.cpf === cpf);
+        if (index !== -1) {
+            this.usuarios.splice(index, 1);
+        } else {
+            throw new Error("Usuario nao encontrado");
+        }
+    }
 }
