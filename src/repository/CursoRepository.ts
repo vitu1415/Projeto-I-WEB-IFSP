@@ -16,7 +16,7 @@ export class CursoRepository{
         return this.instance;
     }
 
-    public listar(): Curso[] {
+    listar(): Curso[] {
         return this.cursos;
     }
 }

@@ -17,7 +17,7 @@ export function cadastrarLivro(req: Request, res: Response) {
 }
 export function listarLivros(req: Request, res: Response) {
     try{
-        const livros = livroService.listarLivors(req.query);
+        const livros = livroService.listarLivros(req.query);
         res.status(200).json(livros);
     } catch (error: any) {
         res.status(500).json({ message: error.message });
@@ -26,7 +26,8 @@ export function listarLivros(req: Request, res: Response) {
 export function detalhesLivro(req: Request, res: Response) {
     try{
         const isbn = req.params.isbn;
-        const livro = livroService.listarLivors({isbn});
+        console.log({isbn});
+        const livro = livroService.buscarLivroPorISBN({isbn});
         res.status(200).json(livro);
     } catch (error: any) {
         res.status(404).json({ message: error.message });

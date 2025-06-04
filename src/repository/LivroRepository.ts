@@ -13,15 +13,15 @@ export class LivroRepository {
         return this.instance;
     }
 
-    public listar(): Livro[] {
+    listar(): Livro[] {
         return this.livros;
     }
 
-    public cadastrar(usuario: Livro): void {
+    cadastrar(usuario: Livro): void {
         this.livros.push(usuario);
     }
 
-    public filtrarPorCampos(livro: any): Livro[] {
+    filtrarPorCampos(livro: any): Livro[] {
         const { id, titulo, autor, editora, edicao, isbn, categoriaLivro } = livro;
         console.log(id, titulo, autor, editora, edicao, isbn, categoriaLivro);
 
@@ -53,9 +53,16 @@ export class LivroRepository {
         return resultado;
     }
 
-    
+    findByISBN(isbn: string): Livro[] {
+        const livro = this.filtrarPorCampos(isbn);
+        console.log(livro);
+        if (!livro) {
+            throw new Error("Livro nao encontrado na base de dados");
+        }
+        return livro;
+    }
 
-    public atualizar(isbnFiltro: any, livro: any): Livro[] {
+    atualizar(isbnFiltro: any, livro: any): Livro[] {
         let resultado = this.filtrarPorCampos(isbnFiltro);
         if(!resultado){
             throw new Error("Livro nao encontrado");
@@ -83,7 +90,7 @@ export class LivroRepository {
         return resultado;
     }
 
-    public remover(isbn: any): void {
+    remover(isbn: any): void {
         const index = this.livros.findIndex(u => u.isbn === isbn);
         if (index !== -1) {
             this.livros.splice(index, 1);

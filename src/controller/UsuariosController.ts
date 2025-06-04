@@ -29,9 +29,6 @@ export function listarUsuarios(req: Request, res: Response) {
 export function filtrarPorCPF(req: Request, res: Response) {
     try{
         const cpf = req.params.cpf;
-        console.log(cpf);
-        console.log({cpf})
-        console.log(req.params.cpf);
         const usuarios = usuarioService.listarUsuarios({cpf});
         res.status(200).json(usuarios);
     } catch (error: any) {

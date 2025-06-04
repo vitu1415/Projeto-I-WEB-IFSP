@@ -52,7 +52,7 @@ export class UsuarioService {
         return this.repository.filtrarPorCampos(usuarioData);
     }
 
-    buscarUsuario(cpf: any): Usuario[] {
+    buscarUsuario(cpf: any): Usuario {
         return this.repository.findByCPF(cpf);
     }
 

@@ -29,8 +29,13 @@ export class LivroService {
         return livro;
     }
 
-    listarLivors(livroData: any): Livro[] {
+    listarLivros(livroData: any): Livro[] {
         return this.repository.filtrarPorCampos(livroData);
+    }
+
+    buscarLivroPorISBN(isbn: any): Livro[] {
+        console.log(isbn);
+        return this.repository.findByISBN(isbn);
     }
 
     atualizarLivro(isbnFiltro: any, livro: any): Livro[] {

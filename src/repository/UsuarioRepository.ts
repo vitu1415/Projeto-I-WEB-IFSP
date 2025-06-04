@@ -4,7 +4,7 @@ export class UsuarioRepository {
     private static instance: UsuarioRepository;
     private usuarios: Usuario[] = [];
 
-    private constructor(){}
+    private constructor() { }
 
     public static getInstance(): UsuarioRepository {
         if (!this.instance) {
@@ -13,15 +13,15 @@ export class UsuarioRepository {
         return this.instance;
     }
 
-    public listar(): Usuario[] {
+    listar(): Usuario[] {
         return this.usuarios;
     }
 
-    public cadastrar(usuario: Usuario): void {
+    cadastrar(usuario: Usuario): void {
         this.usuarios.push(usuario);
     }
 
-    public filtrarPorCampos(usuario: any): Usuario[] {
+    filtrarPorCampos(usuario: any): Usuario[] {
         const { id, nome, cpf, ativo, categoriaUsuario, curso } = usuario;
 
         let resultado = this.listar();
@@ -48,18 +48,17 @@ export class UsuarioRepository {
         return resultado;
     }
 
-    findByCPF(cpf: string): Usuario[] {
-        let resultado = this.filtrarPorCampos(cpf);
-        if(resultado.some(u => u.cpf === cpf)){
-            return resultado;
-        } else{
-            throw new Error("Usuario nao encontrado na base de dados");
+    findByCPF(cpf: string): Usuario {
+        const usuario = this.usuarios.find(u => u.cpf === cpf);
+        if (!usuario) {
+            throw new Error("Usuário não encontrado na base de dados");
         }
+        return usuario;
     }
 
-    public atualizar(cpfFiltro: any, usuario: any): Usuario[] {
+    atualizar(cpfFiltro: any, usuario: any): Usuario[] {
         let resultado = this.filtrarPorCampos(cpfFiltro);
-        if(!resultado){
+        if (!resultado) {
             throw new Error("Usuario nao encontrado");
         }
         const { nome, ativo, cpf, categoriaUsuario, curso } = usuario;
@@ -82,7 +81,7 @@ export class UsuarioRepository {
         return resultado;
     }
 
-    public remover(cpf: any): void {
+    remover(cpf: any): void {
         const index = this.usuarios.findIndex(u => u.cpf === cpf);
         if (index !== -1) {
             this.usuarios.splice(index, 1);

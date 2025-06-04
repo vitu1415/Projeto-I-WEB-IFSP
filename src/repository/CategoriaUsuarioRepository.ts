@@ -17,7 +17,7 @@ export class CategoriaUsuarioRepository {
         return this.instance;
     }
 
-    public listar(): CategoriaLivro[] {
+    listar(): CategoriaLivro[] {
         return this.categoriasUsuario;
     }
 }
