@@ -28,7 +28,6 @@ export class UsuarioRepository {
         if (id !== undefined) {
             resultado = resultado.filter(u => u.id === Number(id));
         }
-        console.log(resultado);
         if (nome !== undefined) {
             resultado = resultado.filter(u => u.nome === nome);
         }
@@ -49,17 +48,29 @@ export class UsuarioRepository {
         return resultado;
     }
 
-    public atualizar(cpf: any, usuario: any): Usuario[] {
+    findByCPF(cpf: string): Usuario[] {
         let resultado = this.filtrarPorCampos(cpf);
+        if(resultado.some(u => u.cpf === cpf)){
+            return resultado;
+        } else{
+            throw new Error("Usuario nao encontrado na base de dados");
+        }
+    }
+
+    public atualizar(cpfFiltro: any, usuario: any): Usuario[] {
+        let resultado = this.filtrarPorCampos(cpfFiltro);
         if(!resultado){
             throw new Error("Usuario nao encontrado");
         }
-        const { nome, ativo, categoriaUsuario, curso } = usuario;
+        const { nome, ativo, cpf, categoriaUsuario, curso } = usuario;
         if (nome !== undefined) {
             resultado[0].nome = nome;
         }
         if (ativo !== undefined) {
             resultado[0].ativo = ativo;
+        }
+        if (cpf !== undefined) {
+            resultado[0].cpf = cpf;
         }
         if (categoriaUsuario !== undefined) {
             resultado[0].categoriaUsuario = categoriaUsuario;

@@ -52,6 +52,10 @@ export class UsuarioService {
         return this.repository.filtrarPorCampos(usuarioData);
     }
 
+    buscarUsuario(cpf: any): Usuario[] {
+        return this.repository.findByCPF(cpf);
+    }
+
     atualizarUsuario(cpf: any, usuarioData: any): Usuario[] {
         return this.repository.atualizar(cpf, usuarioData);
     }

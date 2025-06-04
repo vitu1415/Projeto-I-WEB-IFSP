@@ -29,7 +29,10 @@ export function listarUsuarios(req: Request, res: Response) {
 export function filtrarPorCPF(req: Request, res: Response) {
     try{
         const cpf = req.params.cpf;
-        const usuarios = usuarioService.listarUsuarios(cpf);
+        console.log(cpf);
+        console.log({cpf})
+        console.log(req.params.cpf);
+        const usuarios = usuarioService.listarUsuarios({cpf});
         res.status(200).json(usuarios);
     } catch (error: any) {
         res.status(404).json({ message: error.message });
@@ -50,7 +53,7 @@ export function ataulizarUsuario(req: Request, res: Response) {
     }
 }
 
-//so deletar caso nao tenha nenhum emprestimo no nome
+//so deletar caso nao tenha nenhum emprestimo no nome - FALTA
 export function deletarUsuario(req: Request, res: Response) {
     try{
         const cpf = req.params.cpf;
