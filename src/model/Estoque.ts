@@ -6,8 +6,8 @@ export class Estoque {
     quantidade: number;
     quantidade_emprestada: number;
     disponivel: boolean;
-    constructor(id: number, livroId: Livro, quantidade: number, quantidade_emprestada: number, disponivel: boolean){
-        this.id = id;
+    constructor( livroId: Livro, quantidade: number, quantidade_emprestada: number, disponivel: boolean){
+        this.id = this.gerarId();
         this.livroId = livroId;
         this.quantidade = quantidade;
         this.quantidade_emprestada = quantidade_emprestada;

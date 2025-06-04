@@ -9,9 +9,9 @@ export class Livro{
     isbn: string;
     categoriaLivro: CategoriaLivro;
 
-    constructor(id: number, titulo: string, autor: string, editora: string, edicao: string,
+    constructor( titulo: string, autor: string, editora: string, edicao: string,
         isbn: string, categoriaLivro: CategoriaLivro){
-        this.id = id;
+        this.id = this.gerarId();
         this.titulo = titulo;
         this.autor = autor;
         this.editora = editora;

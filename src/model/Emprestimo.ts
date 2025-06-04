@@ -10,10 +10,10 @@ export class Emprestimo{
     dataEntrega: Date;
     dataAtraso: Date;
     suspensasaoAte: Date;
-    constructor(id: number, usuarioId: Usuario, estoqueId: Estoque, 
+    constructor( usuarioId: Usuario, estoqueId: Estoque, 
         dataEmprestimo: Date, dataDevolucao: Date, dataEntrega: Date, 
         dataAtraso: Date, suspensasaoAte: Date){
-        this.id = id;
+        this.id = this.gerarId();
         this.usuarioId = usuarioId;
         this.estoqueId = estoqueId;
         this.dataEmprestimo = dataEmprestimo;

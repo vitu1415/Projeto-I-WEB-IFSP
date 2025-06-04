@@ -28,9 +28,9 @@ export class UsuarioService {
     }
 
     cadastrarUsuario(usuarioData: any): Usuario {
-        const { id, nome, cpf, categoriaUsuario, curso } = usuarioData;
+        const { nome, cpf, categoriaUsuario, curso } = usuarioData;
         const ativo = true;
-        if (!id || !nome || !cpf || !categoriaUsuario || !curso) {
+        if (!nome || !cpf || !categoriaUsuario || !curso) {
             throw new Error("esta faltando dados que sao obrigatorios");
         }
 
@@ -42,12 +42,8 @@ export class UsuarioService {
         if (usuarioExistente) {
             throw new Error("CPF ja cadastrado");
         }
-        const usuarioIdExistente = this.repository.listar().find(u => u.id === id);
-        if (usuarioIdExistente) {
-            throw new Error("Id ja cadastrado");
-        }
 
-        const usuario = new Usuario(id, nome, cpf, ativo, categoriaUsuario, curso);
+        const usuario = new Usuario( nome, cpf, ativo, categoriaUsuario, curso);
         this.repository.cadastrar(usuario);
         return usuario;
     }
