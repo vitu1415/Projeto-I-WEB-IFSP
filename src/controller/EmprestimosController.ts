@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 
-//validar: CPF usuairo e codigo exemplar.
+//validar: CPF usuairo e codigo exemplar(valdiar se sao reais) - falta
 //validar regras de negocio
 export function cadastrarEmprestimos(req: Request, res: Response) {
 
