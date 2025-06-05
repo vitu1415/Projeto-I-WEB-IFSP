@@ -6,4 +6,12 @@ export class CursoService {
     listar(): Curso[] {
         return this.repository.listar();
     }
+
+    listarPorFiltro(id: number): Curso {
+        const resultado = this.repository.listar().find(c => c.id === id);
+        if (!resultado) {
+            throw new Error("Categoria Curso nao encontrada");
+        }
+        return resultado;
+    }
 }

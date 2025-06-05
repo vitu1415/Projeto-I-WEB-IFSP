@@ -1,8 +1,12 @@
 import { Usuario } from "../model/Usuario";
 import { UsuarioRepository } from "../repository/UsuarioRepository";
+import { CategoriaUsuarioService } from "./CategoriaUsuarioService";
+import { CursoService } from "./CursoService";
 
 export class UsuarioService {
     private repository = UsuarioRepository.getInstance()
+    private categoriaUsuarioService = new CategoriaUsuarioService()
+    private cursoSerivce = new CursoService()
 
     calcularDigitoCPF(cpfParcial: number[], fator: number): number {
         let soma = 0;
@@ -28,12 +32,12 @@ export class UsuarioService {
     }
 
     cadastrarUsuario(usuarioData: any): Usuario {
-        const { nome, cpf, categoriaUsuario, curso } = usuarioData;
+        const { nome, cpf, } = usuarioData;
+        let {categoriaUsuario, curso} = usuarioData
         const ativo = true;
         if (!nome || !cpf || !categoriaUsuario || !curso) {
             throw new Error("esta faltando dados que sao obrigatorios");
         }
-
         if (!this.ValidarCPF(cpf)) {
             throw new Error("CPF invalido");
         }
@@ -41,6 +45,16 @@ export class UsuarioService {
         const usuarioExistente = this.repository.listar().find(u => u.cpf === cpf);
         if (usuarioExistente) {
             throw new Error("CPF ja cadastrado");
+        }
+
+        categoriaUsuario = this.categoriaUsuarioService.listarPorFiltro(categoriaUsuario);
+        if(!categoriaUsuario){
+            throw new Error("Categoria Usuario nao encontrada");
+        }
+
+        curso = this.cursoSerivce.listarPorFiltro(curso);
+        if(!curso){
+            throw new Error("Curso nao encontrado");
         }
 
         const usuario = new Usuario(nome, cpf, ativo, categoriaUsuario, curso);

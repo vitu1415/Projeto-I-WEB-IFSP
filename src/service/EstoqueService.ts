@@ -24,6 +24,10 @@ export class EstoqueService {
         return this.repository.filtrarPorCampos({ disponivel: true });
     }
 
+    listarPorFiltro(estoque: any): Estoque[] {
+        return this.repository.filtrarPorCampos(estoque);
+    }
+
     buscarExplarEmEstoque(id: any): Livro[] {
         let livro: Livro[];
         const resultado = this.repository.findById(id);

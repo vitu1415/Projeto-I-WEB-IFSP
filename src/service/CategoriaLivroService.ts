@@ -7,4 +7,12 @@ export class CategoriaLivroService {
     listar(): CategoriaLivro[] {
         return this.repository.listar()
     }
+
+    listarPorFiltro(id: number): CategoriaLivro{
+        const resultado = this.repository.listar().find(c => c.id === id);
+        if (!resultado) {
+            throw new Error("Categoria livro nao encontrada");
+        }
+        return resultado;
+    }
 }
