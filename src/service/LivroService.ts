@@ -1,11 +1,14 @@
 import { Livro } from "../model/Livro";
 import { LivroRepository } from "../repository/LivroRepository";
+import { CategoriaLivroService } from "./CategoriaLivroService";
 
 export class LivroService {
     private repository = LivroRepository.getInstance()
+    private categoriaLivroService = new CategoriaLivroService();
 
     criarCadastrarLivro(livroData: any): Livro {
-        const { titulo, isbn, autor, edicao, editora, categoriaLivro } = livroData;
+        const { titulo, isbn, autor, edicao, editora } = livroData;
+        let{ categoriaLivro } = livroData;
         if (!titulo || !isbn || !autor || !edicao || !editora || !categoriaLivro) {
             throw new Error("esta faltando dados que sao obrigatorios");
         }
@@ -22,6 +25,11 @@ export class LivroService {
 
         if (livroSequeciaExistente) {
             throw new Error("Essa sequencia de autor, editora, edicao ja foi cadastrada");
+        }
+
+        categoriaLivro = this.categoriaLivroService.listarPorFiltro(categoriaLivro);
+        if (!categoriaLivro) {
+            throw new Error("Categoria livro nao encontrada");
         }
 
         const livro = new Livro(titulo, autor, editora, edicao, isbn, categoriaLivro);

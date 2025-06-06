@@ -45,9 +45,6 @@ export class LivroRepository {
         if (isbn !== undefined) {
             resultado = resultado.filter(u => u.isbn === isbn);
         }
-        if (categoriaLivro !== undefined) {
-            resultado = resultado.filter(u => u.categoriaLivro.id === categoriaLivro.id);
-        }
 
         console.log(resultado);
         return resultado;

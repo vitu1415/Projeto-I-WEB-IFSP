@@ -1,7 +1,21 @@
+import { CategoriaLivro } from "../model/CategoriaLivro";
 import { Estoque } from "../model/Estoque";
 import { Livro } from "../model/Livro";
 import { EstoqueRepository } from "../repository/EstoqueRepository";
 import { LivroService } from "./LivroService";
+
+interface LivroDTO {
+    id: number;
+    titulo: string;
+    autor: string;
+    editora: string;
+    edicao: string;
+    isbn: string;
+    categoriaLivro: {
+        id: number;
+        descricao: string;
+    };
+}
 
 export class EstoqueService {
     private repository = EstoqueRepository.getInstance()
@@ -9,15 +23,41 @@ export class EstoqueService {
 
 
     cadastrarEstoque(estoqueData: any): Estoque {
-        const { livroId, quantidade, quantidade_emprestada, disponivel } = estoqueData;
+        const { quantidade, quantidade_emprestada, disponivel } = estoqueData;
+        let { livroId } = estoqueData;
 
         if (!livroId) {
             throw new Error("Id do livro nao foi passado");
         }
 
+        livroId = this.buscarListaLivro(livroId);
+
         const estoque = new Estoque(livroId, quantidade, quantidade_emprestada, disponivel);
         this.repository.cadastrar(estoque);
-        return estoque
+        return estoque;
+    }
+
+    buscarListaLivro(livroId: any): LivroDTO {
+        let listaLivro = this.serviceLivro.listarLivros({id: livroId});
+        console.log(listaLivro);
+        if (!listaLivro || listaLivro.length === 0) {
+            throw new Error("Livro nao encontrado na base de dados");
+        }
+
+        const livroRefatorado = listaLivro.map(livro => ({
+            id: livro.id,
+            titulo: livro.titulo,
+            autor: livro.autor,
+            editora: livro.editora,
+            edicao: livro.edicao,
+            isbn: livro.isbn,
+            categoriaLivro: {
+                id: livro.categoriaLivro.id,
+                descricao: livro.categoriaLivro.nome
+            }
+        }))
+
+        return livroRefatorado[0];
     }
 
     listarEstoqueDisponivel(): Estoque[] {

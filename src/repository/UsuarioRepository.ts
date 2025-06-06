@@ -38,21 +38,6 @@ export class UsuarioRepository {
             const ativoBool = ativo === true || ativo === 'true';
             resultado = resultado.filter(u => u.ativo === ativoBool);
         }
-        if (categoriaUsuario?.id !== undefined) {
-            resultado = resultado.filter(u => u.categoriaUsuario?.id === categoriaUsuario.id);
-        }
-
-        if (categoriaUsuario?.nome !== undefined) {
-            resultado = resultado.filter(u => u.categoriaUsuario?.nome === categoriaUsuario.nome);
-        }
-
-        if (curso?.id !== undefined) {
-            resultado = resultado.filter(u => u.curso?.id === curso.id);
-        }
-
-        if (curso?.nome !== undefined) {
-            resultado = resultado.filter(u => u.curso?.nome === curso.nome);
-        }
 
         return resultado;
     }

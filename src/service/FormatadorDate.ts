@@ -5,5 +5,11 @@ export class FormatadorDate {
         const ano = data.getFullYear();
         return `${dia}/${mes}/${ano}`;
     }
+    
+    adicionarDias(data: Date | string, dias: number): Date {
+        const novaData = new Date(data); // cria uma cópia para não modificar a original
+        novaData.setDate(novaData.getDate() + dias); // soma os dias corretamente
+        return novaData;
+    }
 
 }
