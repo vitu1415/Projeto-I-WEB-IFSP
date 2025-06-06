@@ -8,19 +8,19 @@ export class Emprestimo{
     dataEmprestimo: Date;
     dataDevolucao: Date;
     dataEntrega: Date;
-    dataAtraso: Date;
-    suspensasaoAte: Date;
+    diasAtraso: number;
+    suspensaoAte: Date;
     constructor( usuarioId: Usuario, estoqueId: Estoque, 
         dataEmprestimo: Date, dataDevolucao: Date, dataEntrega: Date, 
-        dataAtraso: Date, suspensasaoAte: Date){
+        diasAtraso: number, suspensaoAte: Date){
         this.id = this.gerarId();
         this.usuarioId = usuarioId;
         this.estoqueId = estoqueId;
         this.dataEmprestimo = dataEmprestimo;
         this.dataDevolucao = dataDevolucao;
         this.dataEntrega = dataEntrega;
-        this.dataAtraso = dataAtraso;
-        this.suspensasaoAte = suspensasaoAte;
+        this.diasAtraso = diasAtraso;
+        this.suspensaoAte = suspensaoAte;
     }
     private gerarId(): number {
         return Date.now();

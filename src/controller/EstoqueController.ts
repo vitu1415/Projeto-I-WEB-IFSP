@@ -52,7 +52,7 @@ export function atualizarDisponibilidade(req: Request, res: Response) {
 //para DELETAR nao pode estar emprestado = FALTANDO
 export function deletarExemplar(req: Request, res: Response) {
     try{
-        const id = req.params.id;
+        const id = Number(req.params.id);
         estoqueService.deletarEstoque(id);
         res.status(204).json(
             {

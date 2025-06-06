@@ -22,7 +22,7 @@ export class UsuarioRepository {
     }
 
     filtrarPorCampos(usuario: any): Usuario[] {
-        const { id, nome, cpf, ativo, categoriaUsuario, curso } = usuario;
+        const { id, nome, cpf, ativo } = usuario;
 
         let resultado = this.listar();
         if (id !== undefined) {

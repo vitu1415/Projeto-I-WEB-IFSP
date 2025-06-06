@@ -30,4 +30,30 @@ export class EmprestimoRepository{
         resultado[0].dataDevolucao = dataDevolucao;
         return resultado[0];
     }
+
+    cadastrarAtraso(id: any, diasAtraso: number): Emprestimo {
+        let resultado = this.listar();
+        resultado = resultado.filter(u => u.id === Number(id));
+        if(!resultado){
+            throw new Error("Emprestimo nao encontrado");
+        }
+        resultado[0].diasAtraso = diasAtraso;
+        return resultado[0];
+    }
+
+    cadastrarSuspensao(id: any, dataSuspensao: Date): Emprestimo {
+        let resultado = this.listar();
+        resultado = resultado.filter(u => u.id === Number(id));
+        if(!resultado){
+            throw new Error("Emprestimo nao encontrado");
+        }
+        resultado[0].suspensaoAte = dataSuspensao;
+        return resultado[0];
+    }
+
+    buscarPorUsuario(id: any): Emprestimo[] {
+        let resultado = this.listar();
+        resultado = resultado.filter(u => u.usuarioId.id === Number(id));
+        return resultado;
+    }
 }

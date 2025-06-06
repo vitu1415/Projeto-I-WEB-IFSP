@@ -12,7 +12,7 @@ export class EmmprestimoService {
 
     cadastrarEmprestimo(emprestimoData: any): Emprestimo {
         const { usuarioId, estoqueId } = emprestimoData;
-        let { dataEmprestimo, dataDevolucao, dataEntrega, dataAtraso, suspensasaoAte } = emprestimoData;
+        let { dataEmprestimo, dataDevolucao, dataEntrega, diasAtraso, suspensasaoAte } = emprestimoData;
 
         if (!usuarioId || !estoqueId) {
             throw new Error("Campos obrigatórios não preenchidos");
@@ -28,43 +28,99 @@ export class EmmprestimoService {
             if (validadorEstoqueExistente[0].disponivel === false) {
                 throw new Error("Livro indisponivel");
             } else {
-                dataEmprestimo = Date.now();
-                dataEmprestimo = this.fomatadorData.formatarData(dataEmprestimo);
+                dataEmprestimo = new Date();
                 dataDevolucao = this.cadastrarDevolucao(validadorUsuarioExistente[0].categoriaUsuario.nome,
                     validadorUsuarioExistente[0].curso.nome,
-                    validadorEstoqueExistente[0].livroId.categoriaLivro.nome, dataEmprestimo);
-                validadorEstoqueExistente[0].quantidade_emprestada = validadorEstoqueExistente[0].quantidade_emprestada + 1;
+                    validadorEstoqueExistente[0].livroId.categoriaLivro.nome, dataEmprestimo, validadorUsuarioExistente[0].id);
                 this.serviceEstoque.atualizarDisponibilidade(estoqueId, validadorEstoqueExistente[0]);
             }
         } else {
             throw new Error("Estoque nao encontrado na base de dados");
         }
 
-        const emprestimo = new Emprestimo(validadorUsuarioExistente[0], validadorEstoqueExistente[0], dataEmprestimo, dataDevolucao, dataEntrega, dataAtraso, suspensasaoAte);
+        const emprestimo = new Emprestimo(validadorUsuarioExistente[0], validadorEstoqueExistente[0], dataEmprestimo, dataDevolucao, dataEntrega, diasAtraso, suspensasaoAte);
         this.repository.cadastrar(emprestimo);
         return emprestimo;
     }
 
-    cadastrarDevolucao(categoriaUsuarioNome: string, cursoNome: string, livroCategoria: string, dataEmprestimo: Date): Date {
+    cadastrarDevolucao(categoriaUsuarioNome: string, cursoNome: string, livroCategoria: string, dataEmprestimo: Date, id: number): Date {
+        let quantidadeDeEmprestimo: Emprestimo[] = this.repository.buscarPorUsuario(id);
         if (categoriaUsuarioNome === "Professor") {
-            return this.fomatadorData.adicionarDias(dataEmprestimo, 40);
-        } else if (categoriaUsuarioNome === "Aluno") {
-            if (cursoNome === "ADS" && livroCategoria === "Computação") {
-                return this.fomatadorData.adicionarDias(dataEmprestimo, 30);
-            } else if (cursoNome === "Pedagogia" && livroCategoria === "Letras") {
-                return this.fomatadorData.adicionarDias(dataEmprestimo, 30);
-
-            } else if (cursoNome === "Administração" && livroCategoria === "Gestão") {
-                return this.fomatadorData.adicionarDias(dataEmprestimo, 30);
+            if (quantidadeDeEmprestimo.length < 5) {
+                return this.fomatadorData.adicionarDias(dataEmprestimo, 40);
             } else {
-                return this.fomatadorData.adicionarDias(dataEmprestimo, 15);
+                throw new Error("Professor nao pode pegar mais de 5 livros emprestados");
+            }
+        } else if (categoriaUsuarioNome === "Aluno") {
+            if (quantidadeDeEmprestimo.length < 3) {
+                if (cursoNome === "ADS" && livroCategoria === "Computação") {
+                    return this.fomatadorData.adicionarDias(dataEmprestimo, 30);
+                } else if (cursoNome === "Pedagogia" && livroCategoria === "Letras") {
+                    return this.fomatadorData.adicionarDias(dataEmprestimo, 30);
+
+                } else if (cursoNome === "Administração" && livroCategoria === "Gestão") {
+                    return this.fomatadorData.adicionarDias(dataEmprestimo, 30);
+                } else {
+                    return this.fomatadorData.adicionarDias(dataEmprestimo, 15);
+                }
+            } else {
+                throw new Error("Aluno nao pode pegar mais de 3 livros emprestados");
             }
         } else {
-            throw new Error("Usuario nao pode pegar livro emprestado");
+            throw new Error("Esse usuario nao pode pegar livro emprestado");
         }
     }
 
     listarTodosEmprestimos(): Emprestimo[] {
         return this.repository.listar();
+    }
+
+    devolucaoEmprestimo(id: any): void {
+        let resultado = this.repository.devolucaoEmprestimo(id);
+        this.serviceEstoque.devolucaoAtualizarDisponibilidade(resultado.estoqueId.id, resultado.estoqueId);
+        const diasDaEntrega = this.fomatadorData.diferencaEmDias(resultado.dataEntrega, resultado.dataDevolucao);
+        if (resultado.usuarioId.categoriaUsuario.nome === "Professor") {
+            if (diasDaEntrega > 40) {
+                const diasDeAtraso = diasDaEntrega - 40;
+                resultado = this.repository.cadastrarAtraso(id, diasDeAtraso);
+                resultado = this.repository.cadastrarSuspensao(id, this.fomatadorData.adicionarDias(resultado.dataEmprestimo, diasDeAtraso));
+            } else {
+                resultado = this.repository.cadastrarAtraso(id, 0);
+            }
+        } else if (resultado.usuarioId.categoriaUsuario.nome === "Aluno") {
+            if (resultado.usuarioId.curso.nome === "ADS" && resultado.estoqueId.livroId.categoriaLivro.nome === "Computação") {
+                if (diasDaEntrega > 30) {
+                    const diasDeAtraso = diasDaEntrega - 30;
+                    resultado = this.repository.cadastrarAtraso(id, diasDeAtraso);
+                    resultado = this.repository.cadastrarSuspensao(id, this.fomatadorData.adicionarDias(resultado.dataEmprestimo, diasDeAtraso));
+                } else {
+                    resultado = this.repository.cadastrarAtraso(id, 0);
+                }
+            } else if (resultado.usuarioId.curso.nome === "Pedagogia" && resultado.estoqueId.livroId.categoriaLivro.nome === "Letras") {
+                if (diasDaEntrega > 30) {
+                    const diasDeAtraso = diasDaEntrega - 30;
+                    resultado = this.repository.cadastrarAtraso(id, diasDeAtraso);
+                    resultado = this.repository.cadastrarSuspensao(id, this.fomatadorData.adicionarDias(resultado.dataEmprestimo, diasDeAtraso));
+                } else {
+                    resultado = this.repository.cadastrarAtraso(id, 0);
+                }
+            } else if (resultado.usuarioId.curso.nome === "Administração" && resultado.estoqueId.livroId.categoriaLivro.nome === "Gestão") {
+                if (diasDaEntrega > 30) {
+                    const diasDeAtraso = diasDaEntrega - 30;
+                    resultado = this.repository.cadastrarAtraso(id, diasDeAtraso);
+                    resultado = this.repository.cadastrarSuspensao(id, this.fomatadorData.adicionarDias(resultado.dataEmprestimo, diasDeAtraso));
+                } else {
+                    resultado = this.repository.cadastrarAtraso(id, 0);
+                }
+            } else {
+                if (diasDaEntrega > 15) {
+                    const diasDeAtraso = diasDaEntrega - 15;
+                    resultado = this.repository.cadastrarAtraso(id, diasDeAtraso);
+                    resultado = this.repository.cadastrarSuspensao(id, this.fomatadorData.adicionarDias(resultado.dataEmprestimo, diasDeAtraso));
+                } else {
+                    resultado = this.repository.cadastrarAtraso(id, 0);
+                }
+            }
+        }
     }
 }

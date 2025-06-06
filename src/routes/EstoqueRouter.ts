@@ -5,8 +5,8 @@ const router = Router();
 
 router.post('/', cadastroExemplar);
 router.get('/', listarExmplaresDisponiveis);
-router.get('/:codigo', listarDetalhesExemplar);
-router.put('/:codigo', atualizarDisponibilidade);
-router.delete('/:codigo', deletarExemplar);
+router.get('/:id', listarDetalhesExemplar);
+router.put('/:id', atualizarDisponibilidade);
+router.delete('/:id', deletarExemplar);
 
 export default router;

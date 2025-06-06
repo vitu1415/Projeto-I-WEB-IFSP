@@ -38,7 +38,7 @@ export class EstoqueService {
     }
 
     buscarListaLivro(livroId: any): LivroDTO {
-        let listaLivro = this.serviceLivro.listarLivros({id: livroId});
+        let listaLivro = this.serviceLivro.listarLivros({ id: livroId });
         console.log(listaLivro);
         if (!listaLivro || listaLivro.length === 0) {
             throw new Error("Livro nao encontrado na base de dados");
@@ -86,9 +86,9 @@ export class EstoqueService {
         const { quantidade, quantidade_emprestada } = estoqueData;
         let resultado: Estoque[] = this.repository.filtrarPorCampos(id);
         if (resultado) {
-            if (quantidade < quantidade_emprestada) {
+            if (quantidade > quantidade_emprestada) {
                 resultado[0].quantidade = quantidade;
-                resultado[0].quantidade_emprestada = quantidade_emprestada;
+                resultado[0].quantidade_emprestada = quantidade_emprestada + 1;
                 if (resultado[0].quantidade === resultado[0].quantidade_emprestada) {
                     resultado[0].disponivel = false;
                 }
@@ -103,6 +103,20 @@ export class EstoqueService {
                     resultado = this.repository.atualizar(id, resultado[0]);
                 }
             }
+        } else {
+            throw new Error("Nao existe esse codigo no estoque na base de dados");
+        }
+        return resultado;
+    }
+
+    devolucaoAtualizarDisponibilidade(id: any, estoqueData: Estoque): Estoque[] {
+        const { quantidade, quantidade_emprestada } = estoqueData;
+        let resultado: Estoque[] = this.repository.filtrarPorCampos(id);
+        if (resultado) {
+            resultado[0].quantidade = quantidade;
+            resultado[0].quantidade_emprestada = quantidade_emprestada - 1;
+            resultado[0].disponivel = true;
+            resultado = this.repository.atualizar(id, resultado[0]);
         } else {
             throw new Error("Nao existe esse codigo no estoque na base de dados");
         }

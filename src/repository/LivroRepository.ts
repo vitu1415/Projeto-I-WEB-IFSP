@@ -23,10 +23,8 @@ export class LivroRepository {
 
     filtrarPorCampos(livro: any): Livro[] {
         const { id, titulo, autor, editora, edicao, isbn, categoriaLivro } = livro;
-        console.log(id, titulo, autor, editora, edicao, isbn, categoriaLivro);
 
         let resultado = this.listar();
-        console.log(resultado);
         if (id !== undefined) {
             resultado = resultado.filter(u => u.id === Number(id));
         }
@@ -46,7 +44,6 @@ export class LivroRepository {
             resultado = resultado.filter(u => u.isbn === isbn);
         }
 
-        console.log(resultado);
         return resultado;
     }
 
