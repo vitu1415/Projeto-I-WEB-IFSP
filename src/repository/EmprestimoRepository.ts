@@ -51,9 +51,21 @@ export class EmprestimoRepository{
         return resultado[0];
     }
 
-    buscarPorUsuario(id: any): Emprestimo[] {
+    buscarPorUsuario(cpf: any): Emprestimo[] {
         let resultado = this.listar();
-        resultado = resultado.filter(u => u.usuarioId.cpf === id);
+        resultado = resultado.filter(u => u.usuarioId.cpf === cpf);
+        return resultado;
+    }
+
+    buscarPorLivro(isbn: any): Emprestimo[] {
+        let resultado = this.listar();
+        resultado = resultado.filter(u => u.estoqueId.livroId.isbn === isbn);
+        return resultado;
+    }
+
+    BuscarPorEstoque(estoqueId: any): Emprestimo[] {
+        let resultado = this.listar();
+        resultado = resultado.filter(u => u.estoqueId.id === estoqueId.id);
         return resultado;
     }
 }

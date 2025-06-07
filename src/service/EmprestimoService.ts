@@ -127,4 +127,14 @@ export class EmmprestimoService {
         const resultado: Emprestimo[] = this.repository.buscarPorUsuario(cpf);
         return resultado;
     }
+
+    listarEmprestimoPorLivro(isbn: string): Emprestimo[]{
+        const resultado: Emprestimo[] = this.repository.buscarPorLivro(isbn);
+        return resultado;
+    }
+
+    listarEmprestimoPorEstoque(estoqueId: any): Emprestimo[]{
+        const resultado: Emprestimo[] = this.repository.BuscarPorEstoque(estoqueId);
+        return resultado;
+    }
 }

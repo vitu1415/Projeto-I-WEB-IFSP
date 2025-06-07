@@ -1,6 +1,7 @@
 import { Livro } from "../model/Livro";
 import { LivroRepository } from "../repository/LivroRepository";
 import { CategoriaLivroService } from "./CategoriaLivroService";
+import { EmmprestimoService } from "./EmprestimoService";
 
 export class LivroService {
     private repository = LivroRepository.getInstance()
@@ -8,7 +9,7 @@ export class LivroService {
 
     criarCadastrarLivro(livroData: any): Livro {
         const { titulo, isbn, autor, edicao, editora } = livroData;
-        let{ categoriaLivro } = livroData;
+        let { categoriaLivro } = livroData;
         if (!titulo || !isbn || !autor || !edicao || !editora || !categoriaLivro) {
             throw new Error("esta faltando dados que sao obrigatorios");
         }
@@ -51,6 +52,12 @@ export class LivroService {
     }
 
     removerLivro(isbn: any): void {
+        const serviceEmprestimo = new EmmprestimoService();
+        let resultado = serviceEmprestimo.listarEmprestimoPorUsuario(isbn);
+        resultado.find(e => e.dataDevolucao === null);
+        if (resultado.length > 0) {
+            throw new Error("Livro possui emprestimos em aberto, nao e possivel remover");
+        }
         this.repository.remover(isbn);
     }
 }

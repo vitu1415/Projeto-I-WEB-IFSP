@@ -2,6 +2,7 @@ import { CategoriaLivro } from "../model/CategoriaLivro";
 import { Estoque } from "../model/Estoque";
 import { Livro } from "../model/Livro";
 import { EstoqueRepository } from "../repository/EstoqueRepository";
+import { EmmprestimoService } from "./EmprestimoService";
 import { LivroService } from "./LivroService";
 
 interface LivroDTO {
@@ -124,6 +125,12 @@ export class EstoqueService {
     }
 
     deletarEstoque(id: any): void {
+        const serviceEmprestimo = new EmmprestimoService();
+        let resultado = serviceEmprestimo.listarEmprestimoPorUsuario(id);
+        resultado.find(e => e.dataDevolucao === null);
+        if (resultado.length > 0) {
+            throw new Error("Estoque possui emprestimos em aberto, nao e possivel remover");
+        }
         return this.repository.remover(id);
     }
 }
