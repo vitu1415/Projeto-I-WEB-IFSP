@@ -6,10 +6,10 @@ export class EstoqueRepository {
     private constructor() { }
 
     public static getInstance(): EstoqueRepository {
-        if (!EstoqueRepository.instance) {
-            EstoqueRepository.instance = new EstoqueRepository()
+        if (!this.instance) {
+            this.instance = new EstoqueRepository()
         }
-        return EstoqueRepository.instance
+        return this.instance
     }
 
     listar(): Estoque[] {

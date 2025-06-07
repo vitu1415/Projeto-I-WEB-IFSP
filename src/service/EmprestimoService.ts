@@ -1,5 +1,4 @@
 import { Emprestimo } from "../model/Emprestimo";
-import { Estoque } from "../model/Estoque";
 import { EmprestimoRepository } from "../repository/EmprestimoRepository";
 import { EstoqueService } from "./EstoqueService";
 import { FormatadorDate } from "./FormatadorDate";
@@ -122,5 +121,10 @@ export class EmmprestimoService {
                 }
             }
         }
+    }
+
+    listarEmprestimoPorUsuario(cpf: string): Emprestimo[]{
+        const resultado: Emprestimo[] = this.repository.buscarPorUsuario(cpf);
+        return resultado;
     }
 }

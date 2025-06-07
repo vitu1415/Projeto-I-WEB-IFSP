@@ -1,13 +1,13 @@
-import { CategoriaLivro } from "../model/CategoriaLivro";
+import { CategoriaUsuario } from "../model/CategoriaUsuario";
 
 export class CategoriaUsuarioRepository {
     private static instance: CategoriaUsuarioRepository
-    private categoriasUsuario: CategoriaLivro[] = [];
+    private categoriasUsuario: CategoriaUsuario[] = [];
 
     private constructor(){
-        this.categoriasUsuario.push(new CategoriaLivro(1, "Aluno"))
-        this.categoriasUsuario.push(new CategoriaLivro(2, "Professor"))
-        this.categoriasUsuario.push(new CategoriaLivro(3, "Funcionario"))
+        this.categoriasUsuario.push(new CategoriaUsuario(1, "Aluno"))
+        this.categoriasUsuario.push(new CategoriaUsuario(2, "Professor"))
+        this.categoriasUsuario.push(new CategoriaUsuario(3, "Funcionario"))
     }
 
     public static getInstance(): CategoriaUsuarioRepository {
@@ -17,7 +17,7 @@ export class CategoriaUsuarioRepository {
         return this.instance;
     }
 
-    listar(): CategoriaLivro[] {
+    listar(): CategoriaUsuario[] {
         return this.categoriasUsuario;
     }
 }

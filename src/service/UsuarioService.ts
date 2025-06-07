@@ -2,11 +2,12 @@ import { Usuario } from "../model/Usuario";
 import { UsuarioRepository } from "../repository/UsuarioRepository";
 import { CategoriaUsuarioService } from "./CategoriaUsuarioService";
 import { CursoService } from "./CursoService";
+import { EmmprestimoService } from "./EmprestimoService";
 
 export class UsuarioService {
-    private repository = UsuarioRepository.getInstance()
-    private categoriaUsuarioService = new CategoriaUsuarioService()
-    private cursoSerivce = new CursoService()
+    private repository = UsuarioRepository.getInstance();
+    private categoriaUsuarioService = new CategoriaUsuarioService();
+    private cursoSerivce = new CursoService();
 
     calcularDigitoCPF(cpfParcial: number[], fator: number): number {
         let soma = 0;
@@ -75,6 +76,12 @@ export class UsuarioService {
     }
 
     deletarUsuario(cpf: any): void {
+        const serviceEmprestimo = new EmmprestimoService();
+        let resultado = serviceEmprestimo.listarEmprestimoPorUsuario(cpf);
+        resultado.find(e => e.dataDevolucao === null);
+        if (resultado.length > 0) {
+            throw new Error("Usuario possui emprestimos em aberto, nao e possivel remover");
+        }
         return this.repository.remover(cpf);
     }
 }

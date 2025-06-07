@@ -13,7 +13,7 @@ interface LivroDTO {
     isbn: string;
     categoriaLivro: {
         id: number;
-        descricao: string;
+        nome: string;
     };
 }
 
@@ -53,7 +53,7 @@ export class EstoqueService {
             isbn: livro.isbn,
             categoriaLivro: {
                 id: livro.categoriaLivro.id,
-                descricao: livro.categoriaLivro.nome
+                nome: livro.categoriaLivro.nome
             }
         }))
 

@@ -6,10 +6,10 @@ export class EmprestimoRepository{
     private constructor() { }
 
     public static getInstance(): EmprestimoRepository {
-        if (!EmprestimoRepository.instance) {
-            EmprestimoRepository.instance = new EmprestimoRepository()
+        if (!this.instance) {
+            this.instance = new EmprestimoRepository()
         }
-        return EmprestimoRepository.instance
+        return this.instance
     }
 
     cadastrar(emprestimo: Emprestimo): void {
@@ -53,7 +53,7 @@ export class EmprestimoRepository{
 
     buscarPorUsuario(id: any): Emprestimo[] {
         let resultado = this.listar();
-        resultado = resultado.filter(u => u.usuarioId.id === Number(id));
+        resultado = resultado.filter(u => u.usuarioId.cpf === id);
         return resultado;
     }
 }
