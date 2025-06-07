@@ -19,7 +19,13 @@ export class EmmprestimoService {
         }
 
         const validadorUsuarioExistente = this.serviceUsuario.listarUsuarios(usuarioId);
-        if (!validadorUsuarioExistente) {
+        if (validadorUsuarioExistente) {
+            if (validadorUsuarioExistente[0].ativo === CategoriaStatus.INATIVO) {
+                throw new Error("Usuario inativo, nao pode pegar livro emprestado");
+            } else if (validadorUsuarioExistente[0].ativo === CategoriaStatus.SUSPENSO) {
+                throw new Error("Usuario suspenso, nao pode pegar livro emprestado");
+            }
+        } else {
             throw new Error("Usuário nao encontrado na base de dados");
         }
 
@@ -29,7 +35,7 @@ export class EmmprestimoService {
                 throw new Error("Livro indisponivel");
             } else {
                 dataEmprestimo = new Date();
-                dataDevolucao = this.cadastrarDevolucao(validadorUsuarioExistente[0].categoriaUsuario.nome,
+                dataEntrega = this.cadastrarEntrega(validadorUsuarioExistente[0].categoriaUsuario.nome,
                     validadorUsuarioExistente[0].curso.nome,
                     validadorEstoqueExistente[0].livroId.categoriaLivro.nome, dataEmprestimo, validadorUsuarioExistente[0].id);
                 this.serviceEstoque.atualizarDisponibilidade(estoqueId, validadorEstoqueExistente[0]);
@@ -43,7 +49,7 @@ export class EmmprestimoService {
         return emprestimo;
     }
 
-    cadastrarDevolucao(categoriaUsuarioNome: string, cursoNome: string, livroCategoria: string, dataEmprestimo: Date, id: number): Date {
+    cadastrarEntrega(categoriaUsuarioNome: string, cursoNome: string, livroCategoria: string, dataEmprestimo: Date, id: number): Date {
         let quantidadeDeEmprestimo: Emprestimo[] = this.repository.buscarPorUsuario(id);
         if (categoriaUsuarioNome === "Professor") {
             if (quantidadeDeEmprestimo.length < 5) {

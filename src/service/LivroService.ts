@@ -48,14 +48,22 @@ export class LivroService {
     }
 
     atualizarLivro(isbnFiltro: any, livro: any): Livro[] {
+        let { categoriaLivro } = livro;
+        if (categoriaLivro) {
+            categoriaLivro = this.categoriaLivroService.listarPorFiltro(categoriaLivro);
+            if (!categoriaLivro) {
+                throw new Error("Categoria livro nao encontrada");
+            }
+            livro.categoriaLivro = categoriaLivro;
+        }
         return this.repository.atualizar(isbnFiltro, livro);
     }
 
     removerLivro(isbn: any): void {
         const serviceEmprestimo = new EmmprestimoService();
-        let resultado = serviceEmprestimo.listarEmprestimoPorUsuario(isbn);
-        resultado.find(e => e.dataDevolucao === null);
-        if (resultado.length > 0) {
+        const resultado = serviceEmprestimo.listarEmprestimoPorLivro(isbn);
+        let resultado_final = resultado.find(e => e.dataDevolucao === null);
+        if (resultado_final !== undefined) {
             throw new Error("Livro possui emprestimos em aberto, nao e possivel remover");
         }
         this.repository.remover(isbn);

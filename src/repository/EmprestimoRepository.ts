@@ -65,7 +65,7 @@ export class EmprestimoRepository{
 
     BuscarPorEstoque(estoqueId: any): Emprestimo[] {
         let resultado = this.listar();
-        resultado = resultado.filter(u => u.estoqueId.id === estoqueId.id);
+        resultado = resultado.filter(u => u.estoqueId.id === estoqueId);
         return resultado;
     }
 }

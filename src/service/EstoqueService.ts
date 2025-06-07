@@ -1,4 +1,5 @@
 import { CategoriaLivro } from "../model/CategoriaLivro";
+import { Emprestimo } from "../model/Emprestimo";
 import { Estoque } from "../model/Estoque";
 import { Livro } from "../model/Livro";
 import { EstoqueRepository } from "../repository/EstoqueRepository";
@@ -95,14 +96,7 @@ export class EstoqueService {
                 }
                 resultado = this.repository.atualizar(id, resultado[0]);
             } else {
-                if (quantidade > quantidade_emprestada) {
-                    throw new Error("Quantidade nao pode ser maior que quantidade emprestada");
-                } else {
-                    resultado[0].quantidade = quantidade;
-                    resultado[0].quantidade_emprestada = quantidade_emprestada;
-                    resultado[0].disponivel = false;
-                    resultado = this.repository.atualizar(id, resultado[0]);
-                }
+                throw new Error("Quantidade emprestada nao pode ser maior que a quantidade total, livro indisponivel");
             }
         } else {
             throw new Error("Nao existe esse codigo no estoque na base de dados");
@@ -126,9 +120,9 @@ export class EstoqueService {
 
     deletarEstoque(id: any): void {
         const serviceEmprestimo = new EmmprestimoService();
-        let resultado = serviceEmprestimo.listarEmprestimoPorUsuario(id);
-        resultado.find(e => e.dataDevolucao === null);
-        if (resultado.length > 0) {
+        const resultado = serviceEmprestimo.listarEmprestimoPorEstoque(id);
+        let resultado_final = resultado.find(e => e.estoqueId.quantidade_emprestada != 0);
+        if (resultado_final !== undefined) {
             throw new Error("Estoque possui emprestimos em aberto, nao e possivel remover");
         }
         return this.repository.remover(id);

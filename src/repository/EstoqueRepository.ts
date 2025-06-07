@@ -44,7 +44,7 @@ export class EstoqueRepository {
     }
 
     findById(id: number): Estoque {
-        const estoque = this.estoques.find(u => u.id === id);
+        const estoque = this.listar().find(u => u.id === id);
         if (!estoque) {
             throw new Error("Estoque nao encontrado na base de dados");
         }

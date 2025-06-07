@@ -26,8 +26,8 @@ export function listarExmplaresDisponiveis(req: Request, res: Response) {
 }
 export function listarDetalhesExemplar(req: Request, res: Response) {
     try{
-        const id = req.params.id;
-        const exmplar = estoqueService.buscarExplarEmEstoque({id});
+        const id = Number(req.params.id);
+        const exmplar = estoqueService.buscarExplarEmEstoque(id);
         res.status(200).json(exmplar);
     } catch (error: any) {
         res.status(404).json({ message: error.message });
@@ -35,7 +35,7 @@ export function listarDetalhesExemplar(req: Request, res: Response) {
 }
 export function atualizarDisponibilidade(req: Request, res: Response) {
     try{
-        const id = req.params.id;
+        const id = Number(req.params.id);
         const exemplar = estoqueService.atualizarDisponibilidade(id, req.body);
         res.status(200).json(
             {

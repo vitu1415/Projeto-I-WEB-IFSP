@@ -73,14 +73,34 @@ export class UsuarioService {
     }
 
     atualizarUsuario(cpf: any, usuarioData: any): Usuario[] {
+        let { ativo, categoriaLivro, curso } = usuarioData;
+        if (categoriaLivro){
+            categoriaLivro = this.categoriaUsuarioService.listarPorFiltro(categoriaLivro);
+            if (!categoriaLivro) {
+                throw new Error("Categoria Usuario nao encontrada");
+            }
+            usuarioData.categoriaUsuario = categoriaLivro;
+        }
+        if (ativo !== "ATIVO" && ativo !== "INATIVO" && ativo !== "SUSPENSO") {
+            throw new Error("Categoria Usuario nao encontrada");
+        } else {
+            usuarioData.ativo = ativo;
+        }
+        if (curso) {
+            curso = this.cursoSerivce.listarPorFiltro(curso);
+            if (!curso) {
+                throw new Error("Curso nao encontrado");
+            }
+            usuarioData.curso = curso;
+        }
         return this.repository.atualizar(cpf, usuarioData);
     }
 
     deletarUsuario(cpf: any): void {
         const serviceEmprestimo = new EmmprestimoService();
-        let resultado = serviceEmprestimo.listarEmprestimoPorUsuario(cpf);
-        resultado.find(e => e.dataDevolucao === null);
-        if (resultado.length > 0) {
+        const resultado = serviceEmprestimo.listarEmprestimoPorUsuario(cpf);
+        let resultado_final = resultado.find(e => e.dataDevolucao === null);
+        if (resultado_final !== undefined) {
             throw new Error("Usuario possui emprestimos em aberto, nao e possivel remover");
         }
         return this.repository.remover(cpf);

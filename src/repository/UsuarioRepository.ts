@@ -35,8 +35,7 @@ export class UsuarioRepository {
             resultado = resultado.filter(u => u.cpf === cpf);
         }
         if (ativo !== undefined) {
-            const ativoBool = ativo === true || ativo === 'true';
-            resultado = resultado.filter(u => u.ativo === ativoBool);
+            resultado = resultado.filter(u => u.ativo === ativo);
         }
 
         return resultado;
