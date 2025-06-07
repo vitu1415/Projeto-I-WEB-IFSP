@@ -1,3 +1,4 @@
+import { CategoriaStatus } from "../model/CategoriaStatus";
 import { Emprestimo } from "../model/Emprestimo";
 import { EmprestimoRepository } from "../repository/EmprestimoRepository";
 import { EstoqueService } from "./EstoqueService";
@@ -121,6 +122,31 @@ export class EmmprestimoService {
                 }
             }
         }
+    }
+
+    verificadorDeAtraso(){
+        const emprestimos = this.repository.listar();
+        const hoje = new Date();
+        emprestimos.forEach(emprestimo => {
+            if (emprestimo.dataDevolucao === null && emprestimo.dataEntrega !== null) {
+                const diasDeAtraso = this.fomatadorData.diferencaEmDias(hoje, emprestimo.dataEntrega);
+                if (diasDeAtraso > 0) {
+                    this.repository.cadastrarAtraso(emprestimo.id, diasDeAtraso);
+                    this.repository.cadastrarSuspensao(emprestimo.id, this.fomatadorData.calcularSuspensaoAte(hoje, diasDeAtraso));
+                    if(diasDeAtraso > 20){
+                        let usuario = this.serviceUsuario.buscarUsuario(emprestimo.usuarioId.cpf);
+                        if(usuario.ativo === "SUSPENSO"){
+                            usuario.ativo = CategoriaStatus.INATIVO;
+                            this.serviceUsuario.atualizarUsuario(usuario.cpf, usuario);
+                        } 
+                        if(usuario.ativo === "ATIVO"){
+                            usuario.ativo = CategoriaStatus.SUSPENSO;
+                            this.serviceUsuario.atualizarUsuario(usuario.cpf, usuario);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     listarEmprestimoPorUsuario(cpf: string): Emprestimo[]{

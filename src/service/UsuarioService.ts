@@ -1,3 +1,4 @@
+import { CategoriaStatus } from "../model/CategoriaStatus";
 import { Usuario } from "../model/Usuario";
 import { UsuarioRepository } from "../repository/UsuarioRepository";
 import { CategoriaUsuarioService } from "./CategoriaUsuarioService";
@@ -35,7 +36,7 @@ export class UsuarioService {
     cadastrarUsuario(usuarioData: any): Usuario {
         const { nome, cpf, } = usuarioData;
         let {categoriaUsuario, curso} = usuarioData
-        const ativo = true;
+        const ativo: CategoriaStatus = CategoriaStatus.ATIVO;
         if (!nome || !cpf || !categoriaUsuario || !curso) {
             throw new Error("esta faltando dados que sao obrigatorios");
         }
