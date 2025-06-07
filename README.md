@@ -24,7 +24,6 @@ A aplicação consiste em uma **API RESTful** para gestão de biblioteca acadêm
 - [Node.js](https://nodejs.org)
 - [TypeScript](https://www.typescriptlang.org/)
 - [Express.js](https://expressjs.com/)
-- [Nodemon](https://nodemon.io/) (ambiente de desenvolvimento)
 
 ---
 
@@ -37,6 +36,7 @@ src/
 ├── repository/      # Simula persistência dos dados com arrays
 ├── service/         # Contém as regras de negócio
 ├── routes/          # Define os endpoints da API
+├── Utils/          # Existe para ter algumas Validações pontuais
 ├── app.ts         # Ponto de entrada da aplicação
 ```
 
@@ -45,7 +45,7 @@ src/
 ## 🔄 Endpoints da API
 
 
-URL base: `http://localhost:3000`
+URL base: `http://localhost:3090/libary`
 
 ### 📘 Livros (`/livros`)
 - `POST /` - Adicionar novo livro
@@ -94,19 +94,19 @@ URL base: `http://localhost:3000`
 ## 🧪 Como testar
 
 1. Clone o repositório:
-\`\`\`bash
+```bash
 git clone https://github.com/vitu1415/Projeto-I-WEB-IFSP.git
-\`\`\`
+```
 
 2. Instale as dependências:
-\`\`\`bash
+```bash
 npm install
-\`\`\`
+```
 
 3. Inicie a API:
-\`\`\`bash
+```bash
 npm run dev
-\`\`\`
+```
 
 4. Use ferramentas como **Postman** ou **Insomnia** para fazer requisições para os endpoints.
 
