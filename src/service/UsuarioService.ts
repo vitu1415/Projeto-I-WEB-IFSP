@@ -1,4 +1,4 @@
-import { CategoriaStatus } from "../model/CategoriaStatus";
+import { CategoriaStatus } from "../model/CategoriaStatusEnum";
 import { Usuario } from "../model/Usuario";
 import { UsuarioRepository } from "../repository/UsuarioRepository";
 import { CategoriaUsuarioService } from "./CategoriaUsuarioService";

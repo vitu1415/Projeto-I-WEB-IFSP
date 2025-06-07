@@ -1,4 +1,4 @@
-import { CategoriaStatus } from "../model/CategoriaStatus";
+import { CategoriaStatus } from "../model/CategoriaStatusEnum";
 import { Emprestimo } from "../model/Emprestimo";
 import { EmprestimoRepository } from "../repository/EmprestimoRepository";
 import { EstoqueService } from "./EstoqueService";

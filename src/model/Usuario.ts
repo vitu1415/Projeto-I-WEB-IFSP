@@ -1,4 +1,4 @@
-import { CategoriaStatus } from "./CategoriaStatus";
+import { CategoriaStatus } from "./CategoriaStatusEnum";
 import { CategoriaUsuario } from "./CategoriaUsuario";
 import { Curso } from "./Curso";
 
