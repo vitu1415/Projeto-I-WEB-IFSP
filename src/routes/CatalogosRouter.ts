@@ -4,7 +4,7 @@ import { listarCategoriaDeUsuario, listarCategoriaLivro,  listarTiposDeCursos } 
 const router = Router();
 
 router.get('/categorias-usuario', listarCategoriaDeUsuario);
-router.get('/categorias/livro', listarCategoriaLivro);
+router.get('/categorias-livro', listarCategoriaLivro);
 router.get('/cursos', listarTiposDeCursos);
 
 export default router;
