@@ -50,7 +50,7 @@ export class LivroService {
     atualizarLivro(isbnFiltro: any, livro: any): Livro[] {
         let { categoriaLivro } = livro;
         if (categoriaLivro) {
-            categoriaLivro = this.categoriaLivroService.listarPorFiltro(categoriaLivro);
+            categoriaLivro = this.categoriaLivroService.listarPorFiltro(categoriaLivro.id);
             if (!categoriaLivro) {
                 throw new Error("Categoria livro nao encontrada");
             }

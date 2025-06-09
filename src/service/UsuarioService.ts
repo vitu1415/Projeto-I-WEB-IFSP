@@ -4,11 +4,13 @@ import { UsuarioRepository } from "../repository/UsuarioRepository";
 import { CategoriaUsuarioService } from "./CategoriaUsuarioService";
 import { CursoService } from "./CursoService";
 import { EmmprestimoService } from "./EmprestimoService";
+import { FormatadorDate } from "./FormatadorDate";
 
 export class UsuarioService {
     private repository = UsuarioRepository.getInstance();
     private categoriaUsuarioService = new CategoriaUsuarioService();
     private cursoSerivce = new CursoService();
+    private formatadorData = new FormatadorDate();
 
     calcularDigitoCPF(cpfParcial: number[], fator: number): number {
         let soma = 0;
@@ -35,7 +37,7 @@ export class UsuarioService {
 
     cadastrarUsuario(usuarioData: any): Usuario {
         const { nome, cpf, } = usuarioData;
-        let {categoriaUsuario, curso} = usuarioData
+        let { categoriaUsuario, curso } = usuarioData
         const ativo: CategoriaStatus = CategoriaStatus.ATIVO;
         if (!nome || !cpf || !categoriaUsuario || !curso) {
             throw new Error("esta faltando dados que sao obrigatorios");
@@ -50,12 +52,12 @@ export class UsuarioService {
         }
 
         categoriaUsuario = this.categoriaUsuarioService.listarPorFiltro(categoriaUsuario);
-        if(!categoriaUsuario){
+        if (!categoriaUsuario) {
             throw new Error("Categoria Usuario nao encontrada");
         }
 
         curso = this.cursoSerivce.listarPorFiltro(curso);
-        if(!curso){
+        if (!curso) {
             throw new Error("Curso nao encontrado");
         }
 
@@ -74,8 +76,8 @@ export class UsuarioService {
 
     atualizarUsuario(cpf: any, usuarioData: any): Usuario[] {
         let { ativo, categoriaLivro, curso } = usuarioData;
-        if (categoriaLivro){
-            categoriaLivro = this.categoriaUsuarioService.listarPorFiltro(categoriaLivro);
+        if (categoriaLivro) {
+            categoriaLivro = this.categoriaUsuarioService.listarPorFiltro(categoriaLivro.id);
             if (!categoriaLivro) {
                 throw new Error("Categoria Usuario nao encontrada");
             }
@@ -87,7 +89,7 @@ export class UsuarioService {
             usuarioData.ativo = ativo;
         }
         if (curso) {
-            curso = this.cursoSerivce.listarPorFiltro(curso);
+            curso = this.cursoSerivce.listarPorFiltro(curso.id);
             if (!curso) {
                 throw new Error("Curso nao encontrado");
             }
@@ -105,4 +107,30 @@ export class UsuarioService {
         }
         return this.repository.remover(cpf);
     }
+
+    reativarUsuariosSuspensos() {
+        const serviceEmprestimo = new EmmprestimoService();
+        const usuarios = this.repository.listar();
+
+        const hoje = new Date();
+
+        usuarios.forEach(usuario => {
+            if (usuario.ativo !== CategoriaStatus.ATIVO && usuario.ativo !== CategoriaStatus.INATIVO) {
+                const emprestimos = serviceEmprestimo.listarEmprestimoPorUsuario(usuario.cpf);
+
+                const suspensoes = emprestimos
+                    .filter(e => e.suspensaoAte !== null && new Date(e.suspensaoAte) <= hoje);
+
+                const temAtrasoGraveAtual = emprestimos
+                    .some(e => e.dataDevolucao === null &&
+                        this.formatadorData.diferencaEmDias(hoje, e.dataEntrega) > 20);
+
+                if (suspensoes.length > 0 && !temAtrasoGraveAtual) {
+                    usuario.ativo = CategoriaStatus.ATIVO;
+                    this.atualizarUsuario(usuario.cpf, usuario);
+                }
+            }
+        });
+    }
+
 }

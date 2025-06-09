@@ -20,6 +20,12 @@ export class EmprestimoRepository{
         return this.emprestimos
     }
 
+    filtrarPorUsuarioId(usuarioId: any): Emprestimo[] {
+        let resultado = this.listar();
+        resultado = resultado.filter(u => u.usuarioId.id === usuarioId);
+        return resultado;
+    }
+
     devolucaoEmprestimo(id: any): Emprestimo {
         let resultado = this.listar();
         resultado = resultado.filter(u => u.id === Number(id));

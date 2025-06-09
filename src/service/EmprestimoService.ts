@@ -4,6 +4,7 @@ import { EmprestimoRepository } from "../repository/EmprestimoRepository";
 import { EstoqueService } from "./EstoqueService";
 import { FormatadorDate } from "./FormatadorDate";
 import { UsuarioService } from "./UsuarioService";
+
 export class EmmprestimoService {
     private repository = EmprestimoRepository.getInstance();
     private fomatadorData = new FormatadorDate();
@@ -43,7 +44,6 @@ export class EmmprestimoService {
         } else {
             throw new Error("Estoque nao encontrado na base de dados");
         }
-
         const emprestimo = new Emprestimo(validadorUsuarioExistente[0], validadorEstoqueExistente[0], dataEmprestimo, dataDevolucao, dataEntrega, diasAtraso, suspensasaoAte);
         this.repository.cadastrar(emprestimo);
         return emprestimo;
@@ -79,6 +79,14 @@ export class EmmprestimoService {
 
     listarTodosEmprestimos(): Emprestimo[] {
         return this.repository.listar();
+    }
+
+    listarEmprestimosPorUsuario(usuarioCPF: string): Emprestimo[] {
+        const resultado: Emprestimo[] = this.repository.filtrarPorUsuarioId(usuarioCPF);
+        if (resultado.length === 0) {
+            throw new Error("Nenhum emprestimo encontrado para o usuario com id: " + usuarioCPF);
+        }
+        return resultado;
     }
 
     devolucaoEmprestimo(id: any): void {
@@ -130,42 +138,56 @@ export class EmmprestimoService {
         }
     }
 
-    verificadorDeAtraso(){
+    verificadorDeAtraso() {
         const emprestimos = this.repository.listar();
         const hoje = new Date();
+
+        const atrasosGravesPorUsuario: Record<string, number> = {};
+
         emprestimos.forEach(emprestimo => {
-            if (emprestimo.dataDevolucao === null && emprestimo.dataEntrega !== null) {
-                const diasDeAtraso = this.fomatadorData.diferencaEmDias(hoje, emprestimo.dataEntrega);
+            const { dataEntrega, dataDevolucao, usuarioId, id } = emprestimo;
+
+            if (dataDevolucao === null && dataEntrega !== null) {
+                const diasDeAtraso = this.fomatadorData.diferencaEmDias(hoje, new Date(dataEntrega));
+
                 if (diasDeAtraso > 0) {
-                    this.repository.cadastrarAtraso(emprestimo.id, diasDeAtraso);
-                    this.repository.cadastrarSuspensao(emprestimo.id, this.fomatadorData.calcularSuspensaoAte(hoje, diasDeAtraso));
-                    if(diasDeAtraso > 20){
-                        let usuario = this.serviceUsuario.buscarUsuario(emprestimo.usuarioId.cpf);
-                        if(usuario.ativo === "SUSPENSO"){
-                            usuario.ativo = CategoriaStatus.INATIVO;
-                            this.serviceUsuario.atualizarUsuario(usuario.cpf, usuario);
-                        } 
-                        if(usuario.ativo === "ATIVO"){
-                            usuario.ativo = CategoriaStatus.SUSPENSO;
-                            this.serviceUsuario.atualizarUsuario(usuario.cpf, usuario);
-                        }
+                    this.repository.cadastrarAtraso(id, diasDeAtraso);
+                    this.repository.cadastrarSuspensao(id, this.fomatadorData.calcularSuspensaoAte(hoje, diasDeAtraso));
+
+                    if (diasDeAtraso > 20) {
+                        const cpf = usuarioId.cpf;
+                        atrasosGravesPorUsuario[cpf] = (atrasosGravesPorUsuario[cpf] || 0) + 1;
                     }
                 }
             }
         });
+
+        for (const cpf in atrasosGravesPorUsuario) {
+            const qtdAtrasos = atrasosGravesPorUsuario[cpf];
+            const usuario = this.serviceUsuario.buscarUsuario(cpf);
+
+            if (qtdAtrasos >= 2) {
+                usuario.ativo = CategoriaStatus.INATIVO;
+            } else if (qtdAtrasos === 1 && usuario.ativo === CategoriaStatus.ATIVO) {
+                usuario.ativo = CategoriaStatus.SUSPENSO;
+            }
+
+            this.serviceUsuario.atualizarUsuario(cpf, usuario);
+        }
     }
 
-    listarEmprestimoPorUsuario(cpf: string): Emprestimo[]{
+
+    listarEmprestimoPorUsuario(cpf: string): Emprestimo[] {
         const resultado: Emprestimo[] = this.repository.buscarPorUsuario(cpf);
         return resultado;
     }
 
-    listarEmprestimoPorLivro(isbn: string): Emprestimo[]{
+    listarEmprestimoPorLivro(isbn: string): Emprestimo[] {
         const resultado: Emprestimo[] = this.repository.buscarPorLivro(isbn);
         return resultado;
     }
 
-    listarEmprestimoPorEstoque(estoqueId: any): Emprestimo[]{
+    listarEmprestimoPorEstoque(estoqueId: any): Emprestimo[] {
         const resultado: Emprestimo[] = this.repository.BuscarPorEstoque(estoqueId);
         return resultado;
     }
