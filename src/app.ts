@@ -5,6 +5,7 @@ import LivrosRouter from './routes/LivrosRouter';
 import EstoqueRouter from './routes/EstoqueRouter';
 import EmprestimosRouter from './routes/EmprestimosRouter';
 import { iniciarVerificacaoDeAtrasos } from './Utils/ValidadorDeAtrasos';
+import './database/mysql';
 
 const app = express();
 const PORT = process.env.PORT ?? 3090;
