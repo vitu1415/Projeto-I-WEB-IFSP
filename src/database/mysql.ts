@@ -27,7 +27,7 @@ export function conectarBanco(): Promise<Connection> {
 
 export function executarComandoSQL(query: string, valores: any[]): Promise<any> {
     return new Promise((resolve, reject) => {
-        mysqlConnection .query(query, valores, (err, resultado) => {
+        mysqlConnection.query(query, valores, (err, resultado) => {
             if(err) {
                 console.error('Erro ao executar a query .', err);
                 reject(err);

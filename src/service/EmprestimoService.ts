@@ -11,7 +11,7 @@ export class EmmprestimoService {
     private serviceUsuario = new UsuarioService();
     private serviceEstoque = new EstoqueService();
 
-    cadastrarEmprestimo(emprestimoData: any): Emprestimo {
+    async cadastrarEmprestimo(emprestimoData: any): Promise<Emprestimo> {
         const { usuarioId, estoqueId } = emprestimoData;
         let { dataEmprestimo, dataDevolucao, dataEntrega, diasAtraso, suspensasaoAte } = emprestimoData;
 
@@ -19,7 +19,7 @@ export class EmmprestimoService {
             throw new Error("Campos obrigatórios não preenchidos");
         }
 
-        const validadorUsuarioExistente = this.serviceUsuario.listarUsuarios(usuarioId);
+        const validadorUsuarioExistente = await this.serviceUsuario.listarUsuarios(usuarioId);
         if (validadorUsuarioExistente) {
             if (validadorUsuarioExistente[0].ativo === CategoriaStatus.INATIVO) {
                 throw new Error("Usuario inativo, nao pode pegar livro emprestado");
@@ -139,7 +139,7 @@ export class EmmprestimoService {
         return resultado;
     }
 
-    verificadorDeAtraso() {
+    async verificadorDeAtraso() {
         const emprestimos = this.repository.listar();
         const hoje = new Date();
 
@@ -165,7 +165,7 @@ export class EmmprestimoService {
 
         for (const cpf in atrasosGravesPorUsuario) {
             const qtdAtrasos = atrasosGravesPorUsuario[cpf];
-            const usuario = this.serviceUsuario.buscarUsuario(cpf);
+            const usuario = await this.serviceUsuario.buscarUsuario(cpf);
 
             if (qtdAtrasos >= 2) {
                 usuario.ativo = CategoriaStatus.INATIVO;

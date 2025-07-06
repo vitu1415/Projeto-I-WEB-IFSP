@@ -35,7 +35,7 @@ export class UsuarioService {
         return digito1 === cpfArray[9] && digito2 === cpfArray[10];
     }
 
-    cadastrarUsuario(usuarioData: any): Usuario {
+    async cadastrarUsuario(usuarioData: any): Promise<Usuario> {
         const { nome, cpf, } = usuarioData;
         let { categoriaUsuario, curso } = usuarioData
         const ativo: CategoriaStatus = CategoriaStatus.ATIVO;
@@ -46,7 +46,7 @@ export class UsuarioService {
             throw new Error("CPF invalido");
         }
 
-        const usuarioExistente = this.repository.listar().find(u => u.cpf === cpf);
+        const usuarioExistente = await this.repository.findByCPF(cpf);
         if (usuarioExistente) {
             throw new Error("CPF ja cadastrado");
         }
@@ -62,19 +62,19 @@ export class UsuarioService {
         }
 
         const usuario = new Usuario(nome, cpf, ativo, categoriaUsuario, curso);
-        this.repository.cadastrar(usuario);
+        await this.repository.cadastrar(usuario);
         return usuario;
     }
 
-    listarUsuarios(usuarioData: any): Usuario[] {
+    listarUsuarios(usuarioData: any): Promise<Usuario[]> {
         return this.repository.filtrarPorCampos(usuarioData);
     }
 
-    buscarUsuario(cpf: any): Usuario {
+    buscarUsuario(cpf: any): Promise<Usuario> {
         return this.repository.findByCPF(cpf);
     }
 
-    atualizarUsuario(cpf: any, usuarioData: any): Usuario[] {
+    async atualizarUsuario(cpf: any, usuarioData: any): Promise<void> {
         let { ativo, categoriaLivro, curso } = usuarioData;
         if (categoriaLivro) {
             categoriaLivro = this.categoriaUsuarioService.listarPorFiltro(categoriaLivro.id);
@@ -98,7 +98,7 @@ export class UsuarioService {
         return this.repository.atualizar(cpf, usuarioData);
     }
 
-    deletarUsuario(cpf: any): void {
+    deletarUsuario(cpf: any): Promise<void> {
         const serviceEmprestimo = new EmmprestimoService();
         const resultado = serviceEmprestimo.listarEmprestimoPorUsuario(cpf);
         let resultado_final = resultado.find(e => e.dataDevolucao === null);
@@ -108,9 +108,9 @@ export class UsuarioService {
         return this.repository.remover(cpf);
     }
 
-    reativarUsuariosSuspensos() {
+    async reativarUsuariosSuspensos() {
         const serviceEmprestimo = new EmmprestimoService();
-        const usuarios = this.repository.listar();
+        const usuarios = await this.repository.listar();
 
         const hoje = new Date();
 
