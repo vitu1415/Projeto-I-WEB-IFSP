@@ -3,7 +3,7 @@ import { UsuarioService } from "../service/UsuarioService";
 import { get } from "http";
 
 const usuarioService = new UsuarioService();
-export function cadastrarUsuairos(req: Request, res: Response) {
+export async function cadastrarUsuairos(req: Request, res: Response) {
     try {
         const novoUsuario = usuarioService.cadastrarUsuario(req.body);
         res.status(201).json(

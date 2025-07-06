@@ -4,9 +4,8 @@ import { CategoriaLivroRepository } from "../repository/CategoriaLivroRepository
 export class CategoriaLivroService {
     private repository = CategoriaLivroRepository.getInstance()
 
-    async listar(): Promise<CategoriaLivro[]> {
-        const resultado = await this.repository.listar();
-        return resultado
+    listar(): Promise<CategoriaLivro[]> {
+        return this.repository.listar();
     }
 
     async listarPorFiltro(id: number): Promise<CategoriaLivro[]> {

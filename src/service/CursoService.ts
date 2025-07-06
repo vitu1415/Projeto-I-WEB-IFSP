@@ -3,9 +3,8 @@ import { CursoRepository } from "../repository/CursoRepository";
 
 export class CursoService {
     private repository = CursoRepository.getInstance()
-    async listar(): Promise<Curso[]> {
-            const resultado = await this.repository.listar();
-            return resultado
+    listar(): Promise<Curso[]> {
+        return this.repository.listar();
     }
 
     async listarPorFiltro(id: number): Promise<Curso[]> {
