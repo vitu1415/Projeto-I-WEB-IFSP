@@ -4,14 +4,16 @@ import { CategoriaUsuarioRepository } from "../repository/CategoriaUsuarioReposi
 export class CategoriaUsuarioService {
     private repository = CategoriaUsuarioRepository.getInstance();
 
-    listar(): CategoriaUsuario[]{
-        return this.repository.listar();
+    async listar(): Promise<CategoriaUsuario[]> {
+        const resultado = await this.repository.listar();
+        return resultado
     }
 
-    listarPorFiltro(id: number): CategoriaUsuario{
-        const resultado = this.repository.listar().find(c => c.id === id);
+    async listarPorFiltro(id: number): Promise<CategoriaUsuario[]> {
+        let resultado = await this.repository.listar();
+        resultado = resultado.filter(c => c.id === id);
         if (!resultado) {
-            throw new Error("Categoria Usuario nao encontrada");
+            throw new Error("Categoria usuario nao encontrada");
         }
         return resultado;
     }

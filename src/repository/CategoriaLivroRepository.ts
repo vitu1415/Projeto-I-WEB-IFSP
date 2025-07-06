@@ -1,14 +1,11 @@
 import { CategoriaLivro } from "../model/CategoriaLivro";
+import { executarComandoSQL } from "../database/mysql";
 
 export class CategoriaLivroRepository {
     private static instance: CategoriaLivroRepository;
-    private categoriasLivro: CategoriaLivro[] = [];
 
     private constructor(){
-        this.categoriasLivro.push(new CategoriaLivro(1, "Romance"))
-        this.categoriasLivro.push(new CategoriaLivro(2, "Computação"))
-        this.categoriasLivro.push(new CategoriaLivro(3, "Letras"))
-        this.categoriasLivro.push(new CategoriaLivro(4, "Gestão"))
+        this.criarTabela()
     }
 
     public static getInstance(): CategoriaLivroRepository {
@@ -18,7 +15,41 @@ export class CategoriaLivroRepository {
         return this.instance;
     }
 
-    listar(): CategoriaLivro[] {
-        return this.categoriasLivro;
+    private async criarTabela(){
+        const query = `
+            CREATE TABLE IF NOT EXISTS CategoriaLivro (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nome VARCHAR(100) NOT NULL
+            )
+        `;
+        try {
+            await executarComandoSQL(query, []);
+            console.log("Tabela CategoriaLivro verificada/criada com sucesso.");
+            const queryContar = `SELECT COUNT(*) as total FROM CategoriaLivro`;
+            const resultado = await executarComandoSQL(queryContar, []);
+            const total = resultado[0].total;
+
+            if (total === 0) {
+                const categoriasIniciais = ["Romance", "Computação", "Letras", "Gestão"];
+                for (const nome of categoriasIniciais) {
+                    await executarComandoSQL(`INSERT INTO CategoriaLivro (nome) VALUES (?)`, [nome]);
+                }
+            console.log("Categorias fixas inseridas com sucesso.");
+            }
+        } catch (err) {
+            console.error("Erro ao criar tabela CategoriaLivro:", err);
+        }
     }
+
+    public async listar(): Promise<CategoriaLivro[]> {
+        const query = `SELECT * FROM CategoriaLivro`;
+        try {
+            const resultado = await executarComandoSQL(query, []);
+            return resultado;
+        } catch (err) {
+            console.error("Erro ao listar categorias:", err);
+            return [];
+        }
+    }
+
 }
