@@ -32,7 +32,9 @@ export class UsuarioService {
         const digito1 = this.calcularDigitoCPF(cpfArray.slice(0, 9), 10);
         const digito2 = this.calcularDigitoCPF(cpfArray.slice(0, 10), 11);
 
-        return digito1 === cpfArray[9] && digito2 === cpfArray[10];
+        const resultado: boolean = cpfArray[9] === digito1 && cpfArray[10] === digito2;
+
+        return resultado;
     }
 
     async cadastrarUsuario(usuarioData: any): Promise<Usuario> {
@@ -42,26 +44,28 @@ export class UsuarioService {
         if (!nome || !cpf || !categoriaUsuario || !curso) {
             throw new Error("esta faltando dados que sao obrigatorios");
         }
+
+        let teste = this.ValidarCPF(cpf);
         if (!this.ValidarCPF(cpf)) {
             throw new Error("CPF invalido");
         }
 
-        const usuarioExistente = await this.repository.findByCPF(cpf);
+        const usuarioExistente = await this.repository.filtrarPorCampos(cpf);
         if (usuarioExistente) {
             throw new Error("CPF ja cadastrado");
         }
 
-        categoriaUsuario = this.categoriaUsuarioService.listarPorFiltro(categoriaUsuario);
+        categoriaUsuario = await this.categoriaUsuarioService.listarPorFiltro(categoriaUsuario);
         if (!categoriaUsuario) {
             throw new Error("Categoria Usuario nao encontrada");
         }
 
-        curso = this.cursoSerivce.listarPorFiltro(curso);
+        curso = await this.cursoSerivce.listarPorFiltro(curso);
         if (!curso) {
             throw new Error("Curso nao encontrado");
         }
 
-        const usuario = new Usuario(nome, cpf, ativo, categoriaUsuario, curso);
+        const usuario = new Usuario(nome, cpf, ativo, categoriaUsuario[0].id, curso[0].id);
         await this.repository.cadastrar(usuario);
         return usuario;
     }
@@ -77,25 +81,27 @@ export class UsuarioService {
     async atualizarUsuario(cpf: any, usuarioData: any): Promise<void> {
         let { ativo, categoriaLivro, curso } = usuarioData;
         if (categoriaLivro) {
-            categoriaLivro = this.categoriaUsuarioService.listarPorFiltro(categoriaLivro.id);
+            categoriaLivro = await this.categoriaUsuarioService.listarPorFiltro(categoriaLivro.id);
             if (!categoriaLivro) {
                 throw new Error("Categoria Usuario nao encontrada");
             }
             usuarioData.categoriaUsuario = categoriaLivro;
         }
-        if (ativo !== "ATIVO" && ativo !== "INATIVO" && ativo !== "SUSPENSO") {
-            throw new Error("Categoria Usuario nao encontrada");
-        } else {
-            usuarioData.ativo = ativo;
+        if (ativo) {
+            if (ativo !== "ATIVO" && ativo !== "INATIVO" && ativo !== "SUSPENSO") {
+                throw new Error("Categoria Usuario nao encontrada");
+            } else {
+                usuarioData.ativo = ativo;
+            }
         }
         if (curso) {
-            curso = this.cursoSerivce.listarPorFiltro(curso.id);
+            curso = await this.cursoSerivce.listarPorFiltro(curso.id);
             if (!curso) {
                 throw new Error("Curso nao encontrado");
             }
             usuarioData.curso = curso;
         }
-        return this.repository.atualizar(cpf, usuarioData);
+        return await this.repository.atualizar(cpf, usuarioData);
     }
 
     deletarUsuario(cpf: any): Promise<void> {

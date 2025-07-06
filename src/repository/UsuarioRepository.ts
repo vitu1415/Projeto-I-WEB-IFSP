@@ -108,10 +108,6 @@ export class UsuarioRepository {
             campos.push("ativo = ?");
             valores.push(dados.ativo);
         }
-        if (dados.cpf !== undefined) {
-            campos.push("cpf = ?");
-            valores.push(dados.cpf);
-        }
         if (dados.categoriaUsuario !== undefined) {
             campos.push("categoriaUsuario = ?");
             valores.push(dados.categoriaUsuario);
@@ -126,26 +122,18 @@ export class UsuarioRepository {
         const query = `UPDATE Usuario SET ${campos.join(", ")} WHERE cpf = ?`;
         valores.push(cpfFiltro);
 
-        const [resultado] = await executarComandoSQL(query, valores);
-        if ((resultado as any).affectedRows === 0) {
+        const resultado = await executarComandoSQL(query, valores);
+        if (resultado.affectedRows === 0) {
             throw new Error("Usuário não encontrado para atualização");
         }
-        const [usuarios] = await executarComandoSQL('SELECT * FROM Usuario WHERE cpf = ?', [cpfFiltro]);
-
-        if (usuarios.length === 0) {
-            throw new Error("Erro ao buscar usuário atualizado");
-        }
-
-        const usuario = usuarios[0];
-        return usuario
-
-}
+        return;
+    }
 
     async remover(cpf: string): Promise < void> {
     const query = `DELETE FROM Usuario WHERE cpf = ?`;
-    const [resultado] = await executarComandoSQL(query, [cpf]);
+    const resultado = await executarComandoSQL(query, [cpf]);
 
-    if((resultado as any).affectedRows === 0) {
+    if(resultado.affectedRows === 0) {
     throw new Error("Usuário não encontrado para remoção");
 }
     }
