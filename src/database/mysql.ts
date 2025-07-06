@@ -8,14 +8,31 @@ const dbConfig = {
     database: 'projetoWebNodeIFSP'
 };
 
-const mysqlConnection : Connection = mysql.createConnection(dbConfig);
+let mysqlConnection: Connection;;
 
-mysqlConnection.connect((err) => {
-    if (err) {
-        console.error('Erro ao conectar ao banco de dados: ', err );
-        throw err ;
-    } 
-    console.log('Conexao bem - sucedida com o banco de dados MySQL');
-})
+export function conectarBanco(): Promise<Connection> {
+    return new Promise((resolve, reject) => {
+        mysqlConnection = mysql.createConnection(dbConfig);
 
-export default mysqlConnection;
+        mysqlConnection.connect((err) => {
+            if (err) {
+                console.error('Erro ao conectar ao banco de dados:', err);
+                return reject(err);
+            }
+            console.log('Conexão bem-sucedida com o banco de dados MySQL');
+            resolve(mysqlConnection);
+        });
+    });
+}
+
+export function executarComandoSQL(query: string, valores: any[]): Promise<any> {
+    return new Promise((resolve, reject) => {
+        mysqlConnection .query(query, valores, (err, resultado) => {
+            if(err) {
+                console.error('Erro ao executar a query .', err);
+                reject(err);
+            }
+        resolve(resultado);
+        }) ;
+    });
+}
