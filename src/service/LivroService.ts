@@ -7,56 +7,54 @@ export class LivroService {
     private repository = LivroRepository.getInstance()
     private categoriaLivroService = new CategoriaLivroService();
 
-    criarCadastrarLivro(livroData: any): Livro {
+    async criarCadastrarLivro(livroData: any): Promise<Livro> {
         const { titulo, isbn, autor, edicao, editora } = livroData;
         let { categoriaLivro } = livroData;
         if (!titulo || !isbn || !autor || !edicao || !editora || !categoriaLivro) {
             throw new Error("esta faltando dados que sao obrigatorios");
         }
 
-        const livroExistente = this.repository.listar().find(u => u.isbn === isbn);
+        const livroExistente = await this.repository.filtrarPorCampos({isbn});
         if (livroExistente) {
             throw new Error("ISBN ja cadastrado");
         }
 
-        const livroSequeciaExistente = this.repository.listar().some(
-            l => l.autor === autor &&
-                l.editora === editora &&
-                l.edicao === edicao);
-
+        const livroSequeciaExistente = await this.repository.filtrarPorCampos({ autor, editora, edicao });
         if (livroSequeciaExistente) {
             throw new Error("Essa sequencia de autor, editora, edicao ja foi cadastrada");
         }
 
-        categoriaLivro = this.categoriaLivroService.listarPorFiltro(categoriaLivro);
+        categoriaLivro = await this.categoriaLivroService.listarPorFiltro(categoriaLivro);
         if (!categoriaLivro) {
             throw new Error("Categoria livro nao encontrada");
         }
 
-        const livro = new Livro(titulo, autor, editora, edicao, isbn, categoriaLivro);
-        this.repository.cadastrar(livro);
+        const livro = new Livro(titulo, autor, editora, edicao, isbn, categoriaLivro[0].id);
+        await this.repository.cadastrar(livro);
         return livro;
     }
 
-    listarLivros(livroData: any): Livro[] {
+    listarLivros(livroData: any): Promise<Livro[]> {
+        if (livroData === undefined || Object.keys(livroData).length === 0) {
+            return this.repository.listar();
+        }
         return this.repository.filtrarPorCampos(livroData);
     }
 
-    buscarLivroPorISBN(isbn: any): Livro[] {
-        console.log(isbn);
+    buscarLivroPorISBN(isbn: any): Promise<Livro> {
         return this.repository.findByISBN(isbn);
     }
 
-    atualizarLivro(isbnFiltro: any, livro: any): Livro[] {
+    async atualizarLivro(isbnFiltro: any, livro: any): Promise<void> {
         let { categoriaLivro } = livro;
         if (categoriaLivro) {
-            categoriaLivro = this.categoriaLivroService.listarPorFiltro(categoriaLivro.id);
+            categoriaLivro = await this.categoriaLivroService.listarPorFiltro(categoriaLivro.id);
             if (!categoriaLivro) {
                 throw new Error("Categoria livro nao encontrada");
             }
             livro.categoriaLivro = categoriaLivro;
         }
-        return this.repository.atualizar(isbnFiltro, livro);
+        return await this.repository.atualizar(isbnFiltro, livro);
     }
 
     removerLivro(isbn: any): void {

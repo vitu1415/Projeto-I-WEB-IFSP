@@ -82,6 +82,10 @@ export class UsuarioRepository {
         const query = `SELECT * FROM Usuario ${where}`;
         const [resultado] = await executarComandoSQL(query, valores);
 
+        if (resultado.length === 0) {
+            throw new Error("Nenhum usuário encontrado com os critérios fornecidos");
+        }
+        
         return resultado;
     }
 
@@ -129,12 +133,12 @@ export class UsuarioRepository {
         return;
     }
 
-    async remover(cpf: string): Promise < void> {
-    const query = `DELETE FROM Usuario WHERE cpf = ?`;
-    const resultado = await executarComandoSQL(query, [cpf]);
+    async remover(cpf: string): Promise<void> {
+        const query = `DELETE FROM Usuario WHERE cpf = ?`;
+        const resultado = await executarComandoSQL(query, [cpf]);
 
-    if(resultado.affectedRows === 0) {
-    throw new Error("Usuário não encontrado para remoção");
-}
+        if (resultado.affectedRows === 0) {
+            throw new Error("Usuário não encontrado para remoção");
+        }
     }
 }

@@ -45,12 +45,11 @@ export class UsuarioService {
             throw new Error("esta faltando dados que sao obrigatorios");
         }
 
-        let teste = this.ValidarCPF(cpf);
         if (!this.ValidarCPF(cpf)) {
             throw new Error("CPF invalido");
         }
 
-        const usuarioExistente = await this.repository.filtrarPorCampos(cpf);
+        const usuarioExistente = await this.repository.filtrarPorCampos({cpf});
         if (usuarioExistente) {
             throw new Error("CPF ja cadastrado");
         }
@@ -71,6 +70,9 @@ export class UsuarioService {
     }
 
     listarUsuarios(usuarioData: any): Promise<Usuario[]> {
+        if( usuarioData === undefined || Object.keys(usuarioData).length === 0) {
+            return this.repository.listar();
+        }
         return this.repository.filtrarPorCampos(usuarioData);
     }
 

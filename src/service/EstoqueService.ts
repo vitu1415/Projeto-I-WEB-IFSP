@@ -39,8 +39,8 @@ export class EstoqueService {
         return estoque;
     }
 
-    buscarListaLivro(livroId: any): LivroDTO {
-        let listaLivro = this.serviceLivro.listarLivros({ id: livroId });
+    async buscarListaLivro(livroId: any): Promise<LivroDTO> {
+        let listaLivro = await this.serviceLivro.listarLivros({ id: livroId });
         console.log(listaLivro);
         if (!listaLivro || listaLivro.length === 0) {
             throw new Error("Livro nao encontrado na base de dados");
@@ -70,11 +70,11 @@ export class EstoqueService {
         return this.repository.filtrarPorCampos(estoque);
     }
 
-    buscarExplarEmEstoque(id: any): Livro[] {
+    async buscarExplarEmEstoque(id: any): Promise<Livro[]> {
         let livro: Livro[];
-        const resultado = this.repository.findById(id);
+        const resultado = await this.repository.findById(id);
         if (resultado) {
-            livro = this.serviceLivro.listarLivros({ id: resultado.livroId.id });
+            livro = await this.serviceLivro.listarLivros({ id: resultado.livroId.id });
             if (!livro) {
                 throw new Error("Livro nao encontrado na base de dados");
             }
