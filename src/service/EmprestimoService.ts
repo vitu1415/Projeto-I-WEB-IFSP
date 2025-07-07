@@ -30,22 +30,22 @@ export class EmmprestimoService {
             throw new Error("Usuário nao encontrado na base de dados");
         }
 
-        const validadorEstoqueExistente = this.serviceEstoque.listarPorFiltro(estoqueId);
+        const validadorEstoqueExistente = await this.serviceEstoque.listarPorFiltro(estoqueId);
         if (validadorEstoqueExistente) {
             if (validadorEstoqueExistente[0].disponivel === false) {
                 throw new Error("Livro indisponivel");
             } else {
                 dataEmprestimo = new Date();
-                dataEntrega = this.cadastrarEntrega(validadorUsuarioExistente[0].categoriaUsuario.nome,
+                dataEntrega = await this.cadastrarEntrega(validadorUsuarioExistente[0].categoriaUsuario.nome,
                     validadorUsuarioExistente[0].curso.nome,
                     validadorEstoqueExistente[0].livroId.categoriaLivro.nome, dataEmprestimo, validadorUsuarioExistente[0].id);
-                this.serviceEstoque.atualizarDisponibilidade(estoqueId, validadorEstoqueExistente[0]);
+                await this.serviceEstoque.atualizarDisponibilidade(estoqueId, validadorEstoqueExistente[0]);
             }
         } else {
             throw new Error("Estoque nao encontrado na base de dados");
         }
         const emprestimo = new Emprestimo(validadorUsuarioExistente[0], validadorEstoqueExistente[0], dataEmprestimo, dataDevolucao, dataEntrega, diasAtraso, suspensasaoAte);
-        this.repository.cadastrar(emprestimo);
+        await this.repository.cadastrar(emprestimo);
         return emprestimo;
     }
 
