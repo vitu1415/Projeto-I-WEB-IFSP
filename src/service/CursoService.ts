@@ -7,7 +7,7 @@ export class CursoService {
         return this.repository.listar();
     }
 
-    async listarPorFiltro(id: number): Promise<Curso[]> {
+    async listarPorFiltro(id: any): Promise<Curso[]> {
             let resultado = await this.repository.listar();
             resultado = resultado.filter(c => c.id === id);
             if (!resultado) {

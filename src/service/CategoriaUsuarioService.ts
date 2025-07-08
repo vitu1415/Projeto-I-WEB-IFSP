@@ -8,7 +8,7 @@ export class CategoriaUsuarioService {
         return this.repository.listar();
     }
 
-    async listarPorFiltro(id: number): Promise<CategoriaUsuario[]> {
+    async listarPorFiltro(id: any): Promise<CategoriaUsuario[]> {
         let resultado = await this.repository.listar();
         resultado = resultado.filter(c => c.id === id);
         if (!resultado) {

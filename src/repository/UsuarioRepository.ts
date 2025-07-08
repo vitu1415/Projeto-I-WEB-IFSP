@@ -85,7 +85,7 @@ export class UsuarioRepository {
         if (resultado.length === 0) {
             throw new Error("Nenhum usuário encontrado com os critérios fornecidos");
         }
-        
+
         return resultado;
     }
 

@@ -49,7 +49,7 @@ export class UsuarioService {
             throw new Error("CPF invalido");
         }
 
-        const usuarioExistente = await this.repository.filtrarPorCampos({cpf});
+        const usuarioExistente = await this.repository.filtrarPorCampos({ cpf });
         if (usuarioExistente) {
             throw new Error("CPF ja cadastrado");
         }
@@ -69,11 +69,39 @@ export class UsuarioService {
         return usuario;
     }
 
-    listarUsuarios(usuarioData: any): Promise<Usuario[]> {
-        if( usuarioData === undefined || Object.keys(usuarioData).length === 0) {
-            return this.repository.listar();
+    async listarUsuarios(usuarioData: any): Promise<any[]> {
+        let usuarios: Usuario[];
+
+        if (usuarioData === undefined || Object.keys(usuarioData).length === 0) {
+            usuarios = await this.repository.listar();
+        }else {
+            usuarios = await this.repository.filtrarPorCampos(usuarioData);
         }
-        return this.repository.filtrarPorCampos(usuarioData);
+
+        const usuariosCompletos = await Promise.all(
+            usuarios.map(async (u) => {
+                const categoria = await this.categoriaUsuarioService.listarPorFiltro(u.categoriaUsuario);
+                const curso = await this.cursoSerivce.listarPorFiltro(u.curso);
+
+                return {
+                    id: u.id,
+                    nome: u.nome,
+                    cpf: u.cpf,
+                    ativo: u.ativo,
+                    categoriaUsuario: categoria && categoria[0] ? {
+                        id: categoria[0].id,
+                        nome: categoria[0].nome
+                    } : null,
+                    curso: curso && curso[0] ? {
+                        id: curso[0].id,
+                        nome: curso[0].nome
+                    } : null
+                };
+            })
+        );
+
+        return usuariosCompletos;
+
     }
 
     buscarUsuario(cpf: any): Promise<Usuario> {
