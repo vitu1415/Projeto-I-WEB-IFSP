@@ -202,7 +202,7 @@ export class EmmprestimoService {
     }
 
     async verificadorDeAtraso() {
-        const emprestimos = await this.repository.listar();
+        const emprestimos = await this.repository.listarEmprestimosAtrasados();
         const hoje = new Date();
 
         const atrasosGravesPorUsuario: Record<string, number> = {};

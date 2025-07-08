@@ -65,6 +65,17 @@ export class EmprestimoRepository{
         }
     }
 
+    async listarEmprestimosAtrasados(): Promise<Emprestimo[]> {
+        const query = `SELECT * FROM Emprestimo WHERE dataDevolucao IS NULL AND dataEmprestimo < CURDATE()`;
+        try {
+            const resultado = await executarComandoSQL(query, []);
+            return resultado;
+        } catch (err) {
+            console.error("Erro ao retornar emprestimos atrasados:", err);
+            return [];
+        }
+    }
+
     async filtrarPorUsuarioId(usuarioId: any): Promise<Emprestimo[]> {
         const query = `SELECT * FROM Emprestimo WHERE usuarioId = ?`;
         try {

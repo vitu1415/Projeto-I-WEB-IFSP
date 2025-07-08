@@ -47,6 +47,17 @@ export class UsuarioRepository {
         }
     }
 
+    async listarUsuariosSuspensos(): Promise<Usuario[]> {
+        const query = `SELECT * FROM Usuario WHERE ativo = 'SUSPENSO'`;
+        try {
+            const resultado = await executarComandoSQL(query, []);
+            return resultado;
+        } catch (err) {
+            console.error("Erro ao listar usuários suspensos:", err);
+            return [];
+        }
+    }
+
     async cadastrar(usuario: Usuario): Promise<void> {
         const query = `
             INSERT INTO Usuario (nome, cpf, ativo, categoriaUsuario, curso)

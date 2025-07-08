@@ -1,9 +1,4 @@
 import express from 'express';
-import UsuarioRouter from './routes/UsuariosRouter';
-import CatalogoRouter from './routes/CatalogosRouter';
-import LivrosRouter from './routes/LivrosRouter';
-import EstoqueRouter from './routes/EstoqueRouter';
-import EmprestimosRouter from './routes/EmprestimosRouter';
 import { iniciarVerificacaoDeAtrasos } from './Utils/ValidadorDeAtrasos';
 import { conectarBanco } from './database/mysql';
 
@@ -14,7 +9,6 @@ conectarBanco()
         const app = express();
         app.use(express.json());
 
-        // Importa os routers SÓ DEPOIS da conexão estar pronta
         const UsuarioRouter = require('./routes/UsuariosRouter').default;
         const CatalogoRouter = require('./routes/CatalogosRouter').default;
         const LivrosRouter = require('./routes/LivrosRouter').default;

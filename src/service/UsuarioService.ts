@@ -65,7 +65,7 @@ export class UsuarioService {
         }
 
         const usuario = new Usuario(nome, cpf, ativo, categoriaUsuario[0].id, curso[0].id);
-        const resultado:any = await this.repository.cadastrar(usuario);
+        const resultado: any = await this.repository.cadastrar(usuario);
         return await this.listarUsuarios({ id: resultado.insertId });
     }
 
@@ -74,7 +74,7 @@ export class UsuarioService {
 
         if (usuarioData === undefined || Object.keys(usuarioData).length === 0) {
             usuarios = await this.repository.listar();
-        }else {
+        } else {
             usuarios = await this.repository.filtrarPorCampos(usuarioData);
         }
 
@@ -146,27 +146,24 @@ export class UsuarioService {
 
     async reativarUsuariosSuspensos() {
         const serviceEmprestimo = new EmmprestimoService();
-        const usuarios = await this.repository.listar();
+        const usuarios = await this.repository.listarUsuariosSuspensos();
 
         const hoje = new Date();
 
-        for(const usuario of usuarios) {
-            if (usuario.ativo !== CategoriaStatus.ATIVO && usuario.ativo !== CategoriaStatus.INATIVO) {
-                const emprestimos = await serviceEmprestimo.listarEmprestimoPorUsuario(usuario.cpf);
+        for (const usuario of usuarios) {
+            const emprestimos = await serviceEmprestimo.listarEmprestimoPorUsuario(usuario.cpf);
 
-                const suspensoes = emprestimos
-                    .filter(e => e.suspensaoAte !== null && new Date(e.suspensaoAte) <= hoje);
+            const suspensoes = emprestimos
+                .filter(e => e.suspensaoAte !== null && new Date(e.suspensaoAte) <= hoje);
 
-                const temAtrasoGraveAtual = emprestimos
-                    .some(e => e.dataDevolucao === null &&
-                        this.formatadorData.diferencaEmDias(hoje, e.dataEntrega) > 20);
+            const temAtrasoGraveAtual = emprestimos
+                .some(e => e.dataDevolucao === null &&
+                    this.formatadorData.diferencaEmDias(hoje, e.dataEntrega) > 20);
 
-                if (suspensoes.length > 0 && !temAtrasoGraveAtual) {
-                    usuario.ativo = CategoriaStatus.ATIVO;
-                    this.atualizarUsuario(usuario.cpf, usuario);
-                }
+            if (suspensoes.length > 0 && !temAtrasoGraveAtual) {
+                usuario.ativo = CategoriaStatus.ATIVO;
+                this.atualizarUsuario(usuario.cpf, usuario);
             }
-        };
-    }
-
+        }
+    };
 }
