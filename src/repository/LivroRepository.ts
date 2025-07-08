@@ -91,12 +91,7 @@ export class LivroRepository {
 
         const where = condicoes.length > 0 ? `WHERE ${condicoes.join(" AND ")}` : "";
         const query = `SELECT * FROM Livro ${where}`;
-        const [resultado] = await executarComandoSQL(query, valores);
-
-        if (resultado.length === 0) {
-            throw new Error("Nenhum livro encontrado com os critérios fornecidos");
-        }
-
+        const resultado = await executarComandoSQL(query, valores);
         return resultado;
     }
 

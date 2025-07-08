@@ -45,7 +45,7 @@ export class EstoqueRepository {
         }
     }
 
-    async cadastrar(estoque: Estoque): Promise<void> {
+    async cadastrar(estoque: Estoque): Promise<Estoque> {
         const query = `
                 INSERT INTO Estoque (livroId, quantidade, quantidade_emprestada, disponivel)
                 VALUES (?, ?, ?, ?)
@@ -58,6 +58,10 @@ export class EstoqueRepository {
         const condicoes: string[] = [];
         const valores: any[] = [];
 
+        if(filtro.id !== undefined) {
+            condicoes.push("id = ?");
+            valores.push(filtro.id);
+        }
         if (filtro.livroId !== undefined) {
             condicoes.push("livroId = ?");
             valores.push(filtro.livroId);
@@ -77,18 +81,13 @@ export class EstoqueRepository {
 
         const where = condicoes.length > 0 ? `WHERE ${condicoes.join(" AND ")}` : "";
         const query = `SELECT * FROM Estoque ${where}`;
-        const [resultado] = await executarComandoSQL(query, valores);
-
-        if (resultado.length === 0) {
-            throw new Error("Nenhum estoque encontrado com os critérios fornecidos");
-        }
-
+        const resultado = await executarComandoSQL(query, valores);
         return resultado;
     }
 
-    async findById(cpf: string): Promise<Estoque> {
-        const query = `SELECT * FROM Estoque WHERE cpf = ?`;
-        const resultado = await executarComandoSQL(query, [cpf]);
+    async findById(id: string): Promise<Estoque> {
+        const query = `SELECT * FROM Estoque WHERE id = ?`;
+        const resultado = await executarComandoSQL(query, [id]);
 
         if (resultado.length === 0) {
             throw new Error("Estoque não encontrado");

@@ -37,7 +37,7 @@ export class UsuarioService {
         return resultado;
     }
 
-    async cadastrarUsuario(usuarioData: any): Promise<Usuario> {
+    async cadastrarUsuario(usuarioData: any): Promise<Usuario[]> {
         const { nome, cpf, } = usuarioData;
         let { categoriaUsuario, curso } = usuarioData
         const ativo: CategoriaStatus = CategoriaStatus.ATIVO;
@@ -50,7 +50,7 @@ export class UsuarioService {
         }
 
         const usuarioExistente = await this.repository.filtrarPorCampos({ cpf });
-        if (usuarioExistente) {
+        if (usuarioExistente.length > 0) {
             throw new Error("CPF ja cadastrado");
         }
 
@@ -65,8 +65,8 @@ export class UsuarioService {
         }
 
         const usuario = new Usuario(nome, cpf, ativo, categoriaUsuario[0].id, curso[0].id);
-        await this.repository.cadastrar(usuario);
-        return usuario;
+        const resultado:any = await this.repository.cadastrar(usuario);
+        return await this.listarUsuarios({ id: resultado.insertId });
     }
 
     async listarUsuarios(usuarioData: any): Promise<any[]> {
@@ -88,14 +88,14 @@ export class UsuarioService {
                     nome: u.nome,
                     cpf: u.cpf,
                     ativo: u.ativo,
-                    categoriaUsuario: categoria && categoria[0] ? {
+                    categoriaUsuario: {
                         id: categoria[0].id,
                         nome: categoria[0].nome
-                    } : null,
-                    curso: curso && curso[0] ? {
+                    },
+                    curso: {
                         id: curso[0].id,
                         nome: curso[0].nome
-                    } : null
+                    }
                 };
             })
         );

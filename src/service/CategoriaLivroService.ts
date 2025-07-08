@@ -8,7 +8,7 @@ export class CategoriaLivroService {
         return this.repository.listar();
     }
 
-    async listarPorFiltro(id: number): Promise<CategoriaLivro[]> {
+    async listarPorFiltro(id: any): Promise<CategoriaLivro[]> {
         let resultado = await this.repository.listar();
         resultado = resultado.filter(c => c.id === id);
         if (!resultado) {

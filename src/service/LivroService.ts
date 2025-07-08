@@ -7,7 +7,7 @@ export class LivroService {
     private repository = LivroRepository.getInstance()
     private categoriaLivroService = new CategoriaLivroService();
 
-    async criarCadastrarLivro(livroData: any): Promise<Livro> {
+    async criarCadastrarLivro(livroData: any): Promise<Livro[]> {
         const { titulo, isbn, autor, edicao, editora } = livroData;
         let { categoriaLivro } = livroData;
         if (!titulo || !isbn || !autor || !edicao || !editora || !categoriaLivro) {
@@ -15,12 +15,12 @@ export class LivroService {
         }
 
         const livroExistente = await this.repository.filtrarPorCampos({isbn});
-        if (livroExistente) {
+        if (livroExistente.length > 0) {
             throw new Error("ISBN ja cadastrado");
         }
 
         const livroSequeciaExistente = await this.repository.filtrarPorCampos({ autor, editora, edicao });
-        if (livroSequeciaExistente) {
+        if (livroSequeciaExistente.length > 0) {
             throw new Error("Essa sequencia de autor, editora, edicao ja foi cadastrada");
         }
 
@@ -30,15 +30,37 @@ export class LivroService {
         }
 
         const livro = new Livro(titulo, autor, editora, edicao, isbn, categoriaLivro[0].id);
-        await this.repository.cadastrar(livro);
-        return livro;
+        const resultado:any = await this.repository.cadastrar(livro);
+        return await this.listarLivros({ id: resultado.insertId });
     }
 
-    listarLivros(livroData: any): Promise<Livro[]> {
+    async listarLivros(livroData: any): Promise<any[]> {
+        let livros: Livro[];
+
         if (livroData === undefined || Object.keys(livroData).length === 0) {
-            return this.repository.listar();
+            livros = await this.repository.listar();
+        } else{
+            livros = await this.repository.filtrarPorCampos(livroData);
         }
-        return this.repository.filtrarPorCampos(livroData);
+
+        const livrosCompletos = await Promise.all(
+            livros.map(async (l) => {
+                const categoria = await this.categoriaLivroService.listarPorFiltro(l.categoriaLivro);
+                return {
+                    id: l.id,
+                    titulo: l.titulo,
+                    autor: l.autor,
+                    editora: l.editora,
+                    edicao: l.edicao,
+                    isbn: l.isbn,
+                    categoriaLivro: {
+                        id: categoria[0].id,
+                        nome: categoria[0].nome
+                    }
+                };
+            })
+        );
+        return livrosCompletos;
     }
 
     buscarLivroPorISBN(isbn: any): Promise<Livro> {

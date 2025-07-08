@@ -24,19 +24,16 @@ export class EstoqueService {
     private serviceLivro = new LivroService();
 
 
-    async cadastrarEstoque(estoqueData: any): Promise<Estoque> {
-        const { quantidade, quantidade_emprestada, disponivel } = estoqueData;
-        let { livroId } = estoqueData;
+    async cadastrarEstoque(estoqueData: any): Promise<Estoque[]> {
+        const { quantidade, quantidade_emprestada, disponivel, livroId } = estoqueData;
 
         if (!livroId) {
             throw new Error("Id do livro nao foi passado");
         }
 
-        livroId = await this.buscarListaLivro(livroId);
-
         const estoque = new Estoque(livroId, quantidade, quantidade_emprestada, disponivel);
-        await this.repository.cadastrar(estoque);
-        return estoque;
+        const resultado: any = await this.repository.cadastrar(estoque);
+        return await this.listarPorFiltro({id: resultado.insertId});
     }
 
     async buscarListaLivro(livroId: any): Promise<LivroDTO> {
@@ -61,8 +58,26 @@ export class EstoqueService {
         return livroRefatorado[0];
     }
 
-    listarEstoqueDisponivel(): Promise<Estoque[]> {
-        return this.repository.filtrarPorCampos({ disponivel: true });
+    async listarEstoqueDisponivel(): Promise<any[]> {
+        const estoque = await this.repository.filtrarPorCampos({ disponivel: true });
+
+        const estoqueCompleto = await Promise.all(
+            estoque.map(async (e) => {
+                const livro = await this.serviceLivro.listarLivros({ id: e.livroId });
+                
+                return {
+                    id: e.id,
+                    livroId: {
+                        ...livro[0],
+                    },
+                    quantidade: e.quantidade,
+                    quantidade_emprestada: e.quantidade_emprestada,
+                    disponivel: e.disponivel
+                };
+            }
+        ));
+
+        return estoqueCompleto;
     }
 
     listarPorFiltro(estoque: any): Promise<Estoque[]> {
@@ -73,7 +88,7 @@ export class EstoqueService {
         let livro: Livro[];
         const resultado = await this.repository.findById(id);
         if (resultado) {
-            livro = await this.serviceLivro.listarLivros({ id: resultado.livroId.id });
+            livro = await this.serviceLivro.listarLivros({ id: resultado.livroId });
             if (!livro) {
                 throw new Error("Livro nao encontrado na base de dados");
             }
