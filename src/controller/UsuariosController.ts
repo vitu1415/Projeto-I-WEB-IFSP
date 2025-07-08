@@ -3,9 +3,9 @@ import { UsuarioService } from "../service/UsuarioService";
 import { get } from "http";
 
 const usuarioService = new UsuarioService();
-export function cadastrarUsuairos(req: Request, res: Response) {
+export async function cadastrarUsuairos(req: Request, res: Response) {
     try {
-        const novoUsuario = usuarioService.cadastrarUsuario(req.body);
+        const novoUsuario = await usuarioService.cadastrarUsuario(req.body);
         res.status(201).json(
             {
                 message: "Usuario cadastrado com sucesso",
@@ -18,27 +18,27 @@ export function cadastrarUsuairos(req: Request, res: Response) {
 }
 
 //filtro de query
-export function listarUsuarios(req: Request, res: Response) {
+export async function listarUsuarios(req: Request, res: Response) {
     try{
-        const usuarios = usuarioService.listarUsuarios(req.query);
+        const usuarios = await usuarioService.listarUsuarios(req.query);
         res.status(200).json(usuarios);
     } catch (error: any) {
         res.status(500).json({ message: error.message });
     }
 }
-export function filtrarPorCPF(req: Request, res: Response) {
+export async function filtrarPorCPF(req: Request, res: Response) {
     try{
         const cpf = req.params.cpf;
-        const usuarios = usuarioService.listarUsuarios({cpf});
+        const usuarios = await usuarioService.listarUsuarios({cpf});
         res.status(200).json(usuarios);
     } catch (error: any) {
         res.status(404).json({ message: error.message });
     }
 }
-export function ataulizarUsuario(req: Request, res: Response) {
+export async function ataulizarUsuario(req: Request, res: Response) {
     try{
         const cpf = req.params.cpf;
-        const usuario = usuarioService.atualizarUsuario(cpf, req.body);
+        const usuario = await usuarioService.atualizarUsuario(cpf, req.body);
         res.status(200).json(
             {
                 message: "Usuario atualizado com sucesso",
@@ -51,10 +51,10 @@ export function ataulizarUsuario(req: Request, res: Response) {
 }
 
 //so deletar caso nao tenha nenhum emprestimo no nome - FALTA
-export function deletarUsuario(req: Request, res: Response) {
+export async function deletarUsuario(req: Request, res: Response) {
     try{
         const cpf = req.params.cpf;
-        usuarioService.deletarUsuario(cpf);
+        await usuarioService.deletarUsuario(cpf);
         res.status(204).json(
             {
                 message: "Usuario deletado com sucesso",

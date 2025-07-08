@@ -7,61 +7,81 @@ export class LivroService {
     private repository = LivroRepository.getInstance()
     private categoriaLivroService = new CategoriaLivroService();
 
-    criarCadastrarLivro(livroData: any): Livro {
+    async criarCadastrarLivro(livroData: any): Promise<Livro[]> {
         const { titulo, isbn, autor, edicao, editora } = livroData;
         let { categoriaLivro } = livroData;
         if (!titulo || !isbn || !autor || !edicao || !editora || !categoriaLivro) {
             throw new Error("esta faltando dados que sao obrigatorios");
         }
 
-        const livroExistente = this.repository.listar().find(u => u.isbn === isbn);
-        if (livroExistente) {
+        const livroExistente = await this.repository.filtrarPorCampos({isbn});
+        if (livroExistente.length > 0) {
             throw new Error("ISBN ja cadastrado");
         }
 
-        const livroSequeciaExistente = this.repository.listar().some(
-            l => l.autor === autor &&
-                l.editora === editora &&
-                l.edicao === edicao);
-
-        if (livroSequeciaExistente) {
+        const livroSequeciaExistente = await this.repository.filtrarPorCampos({ autor, editora, edicao });
+        if (livroSequeciaExistente.length > 0) {
             throw new Error("Essa sequencia de autor, editora, edicao ja foi cadastrada");
         }
 
-        categoriaLivro = this.categoriaLivroService.listarPorFiltro(categoriaLivro);
+        categoriaLivro = await this.categoriaLivroService.listarPorFiltro(categoriaLivro);
         if (!categoriaLivro) {
             throw new Error("Categoria livro nao encontrada");
         }
 
-        const livro = new Livro(titulo, autor, editora, edicao, isbn, categoriaLivro);
-        this.repository.cadastrar(livro);
-        return livro;
+        const livro = new Livro(titulo, autor, editora, edicao, isbn, categoriaLivro[0].id);
+        const resultado:any = await this.repository.cadastrar(livro);
+        return await this.listarLivros({ id: resultado.insertId });
     }
 
-    listarLivros(livroData: any): Livro[] {
-        return this.repository.filtrarPorCampos(livroData);
+    async listarLivros(livroData: any): Promise<any[]> {
+        let livros: Livro[];
+
+        if (livroData === undefined || Object.keys(livroData).length === 0) {
+            livros = await this.repository.listar();
+        } else{
+            livros = await this.repository.filtrarPorCampos(livroData);
+        }
+
+        const livrosCompletos = await Promise.all(
+            livros.map(async (l) => {
+                const categoria = await this.categoriaLivroService.listarPorFiltro(l.categoriaLivro);
+                return {
+                    id: l.id,
+                    titulo: l.titulo,
+                    autor: l.autor,
+                    editora: l.editora,
+                    edicao: l.edicao,
+                    isbn: l.isbn,
+                    categoriaLivro: {
+                        id: categoria[0].id,
+                        nome: categoria[0].nome
+                    }
+                };
+            })
+        );
+        return livrosCompletos;
     }
 
-    buscarLivroPorISBN(isbn: any): Livro[] {
-        console.log(isbn);
+    buscarLivroPorISBN(isbn: any): Promise<Livro> {
         return this.repository.findByISBN(isbn);
     }
 
-    atualizarLivro(isbnFiltro: any, livro: any): Livro[] {
+    async atualizarLivro(isbnFiltro: any, livro: any): Promise<void> {
         let { categoriaLivro } = livro;
         if (categoriaLivro) {
-            categoriaLivro = this.categoriaLivroService.listarPorFiltro(categoriaLivro.id);
+            categoriaLivro = await this.categoriaLivroService.listarPorFiltro(categoriaLivro.id);
             if (!categoriaLivro) {
                 throw new Error("Categoria livro nao encontrada");
             }
             livro.categoriaLivro = categoriaLivro;
         }
-        return this.repository.atualizar(isbnFiltro, livro);
+        return await this.repository.atualizar(isbnFiltro, livro);
     }
 
-    removerLivro(isbn: any): void {
+    async removerLivro(isbn: any): Promise<void> {
         const serviceEmprestimo = new EmmprestimoService();
-        const resultado = serviceEmprestimo.listarEmprestimoPorLivro(isbn);
+        const resultado = await serviceEmprestimo.listarEmprestimoPorLivro(isbn);
         let resultado_final = resultado.find(e => e.dataDevolucao === null);
         if (resultado_final !== undefined) {
             throw new Error("Livro possui emprestimos em aberto, nao e possivel remover");

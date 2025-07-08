@@ -5,20 +5,34 @@ import LivrosRouter from './routes/LivrosRouter';
 import EstoqueRouter from './routes/EstoqueRouter';
 import EmprestimosRouter from './routes/EmprestimosRouter';
 import { iniciarVerificacaoDeAtrasos } from './Utils/ValidadorDeAtrasos';
-import './database/mysql';
+import { conectarBanco } from './database/mysql';
 
-const app = express();
-const PORT = process.env.PORT ?? 3090;
+const PORT = process.env.PORT || 3090;
 
-app.use(express.json());
+conectarBanco()
+    .then(() => {
+        const app = express();
+        app.use(express.json());
 
-app.use('/libary/usuarios', UsuarioRouter);
-app.use('/libary/livros', LivrosRouter);
-app.use('/libary/estoque', EstoqueRouter);
-app.use('/libary/emprestimos', EmprestimosRouter);
-app.use('/libary/catalogos', CatalogoRouter);
+        // Importa os routers SÓ DEPOIS da conexão estar pronta
+        const UsuarioRouter = require('./routes/UsuariosRouter').default;
+        const CatalogoRouter = require('./routes/CatalogosRouter').default;
+        const LivrosRouter = require('./routes/LivrosRouter').default;
+        const EstoqueRouter = require('./routes/EstoqueRouter').default;
+        const EmprestimosRouter = require('./routes/EmprestimosRouter').default;
 
-app.listen(PORT, () => {
-    console.log(`Server is running on ${PORT}`);
-    iniciarVerificacaoDeAtrasos();
-});
+        app.use('/libary/usuarios', UsuarioRouter);
+        app.use('/libary/livros', LivrosRouter);
+        app.use('/libary/estoque', EstoqueRouter);
+        app.use('/libary/emprestimos', EmprestimosRouter);
+        app.use('/libary/catalogos', CatalogoRouter);
+
+        app.listen(PORT, () => {
+            console.log(`Servidor rodando na porta ${PORT}`);
+            iniciarVerificacaoDeAtrasos();
+        });
+    })
+    .catch((err) => {
+        console.error('Falha ao iniciar o servidor devido a erro de banco de dados:', err);
+        process.exit(1);
+    });

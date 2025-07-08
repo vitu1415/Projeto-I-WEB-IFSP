@@ -1,10 +1,12 @@
 import { Usuario } from "../model/Usuario";
+import { executarComandoSQL } from "../database/mysql";
 
 export class UsuarioRepository {
     private static instance: UsuarioRepository;
-    private usuarios: Usuario[] = [];
 
-    private constructor() { }
+    private constructor() {
+        this.criarTabela();
+    }
 
     public static getInstance(): UsuarioRepository {
         if (!this.instance) {
@@ -13,73 +15,125 @@ export class UsuarioRepository {
         return this.instance;
     }
 
-    listar(): Usuario[] {
-        return this.usuarios;
+    private async criarTabela() {
+        const query = `
+            CREATE TABLE IF NOT EXISTS Usuario (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nome VARCHAR(100) NOT NULL,
+                cpf VARCHAR(11) NOT NULL UNIQUE,
+                ativo ENUM('ATIVO', 'SUSPENSO', 'INATIVO') NOT NULL,
+                categoriaUsuario INT NOT NULL,
+                curso INT NOT NULL,
+                FOREIGN KEY (categoriaUsuario) REFERENCES CategoriaUsuario(id),
+                FOREIGN KEY (curso) REFERENCES Cursos(id)
+            )
+        `;
+        try {
+            await executarComandoSQL(query, []);
+            console.log("Tabela Usuario verificada/criada com sucesso.");
+        } catch (err) {
+            console.error("Erro ao criar tabela Usuario:", err);
+        }
     }
 
-    cadastrar(usuario: Usuario): void {
-        this.usuarios.push(usuario);
+    async listar(): Promise<Usuario[]> {
+        const query = `SELECT * FROM Usuario`;
+        try {
+            const resultado = await executarComandoSQL(query, []);
+            return resultado
+        } catch (err) {
+            console.error("Erro ao listar usuários:", err);
+            return [];
+        }
     }
 
-    filtrarPorCampos(usuario: any): Usuario[] {
-        const { id, nome, cpf, ativo } = usuario;
+    async cadastrar(usuario: Usuario): Promise<void> {
+        const query = `
+            INSERT INTO Usuario (nome, cpf, ativo, categoriaUsuario, curso)
+            VALUES (?, ?, ?, ?, ?)
+        `;
+        const params = [usuario.nome, usuario.cpf, usuario.ativo, usuario.categoriaUsuario, usuario.curso];
+        return await executarComandoSQL(query, params);
+    }
 
-        let resultado = this.listar();
-        if (id !== undefined) {
-            resultado = resultado.filter(u => u.id === Number(id));
+
+    async filtrarPorCampos(filtro: Partial<Usuario>): Promise<Usuario[]> {
+        const condicoes: string[] = [];
+        const valores: any[] = [];
+
+        if (filtro.id !== undefined) {
+            condicoes.push("id = ?");
+            valores.push(filtro.id);
         }
-        if (nome !== undefined) {
-            resultado = resultado.filter(u => u.nome === nome);
+        if (filtro.nome !== undefined) {
+            condicoes.push("nome = ?");
+            valores.push(filtro.nome);
         }
-        if (cpf !== undefined) {
-            resultado = resultado.filter(u => u.cpf === cpf);
+        if (filtro.cpf !== undefined) {
+            condicoes.push("cpf = ?");
+            valores.push(filtro.cpf);
         }
-        if (ativo !== undefined) {
-            resultado = resultado.filter(u => u.ativo === ativo);
+        if (filtro.ativo !== undefined) {
+            condicoes.push("ativo = ?");
+            valores.push(filtro.ativo);
         }
 
+        const where = condicoes.length > 0 ? `WHERE ${condicoes.join(" AND ")}` : "";
+        const query = `SELECT * FROM Usuario ${where}`;
+        const resultado = await executarComandoSQL(query, valores);
         return resultado;
     }
 
-    findByCPF(cpf: string): Usuario {
-        const usuario = this.usuarios.find(u => u.cpf === cpf);
-        if (!usuario) {
-            throw new Error("Usuário não encontrado na base de dados");
+    async findByCPF(cpf: string): Promise<Usuario> {
+        const query = `SELECT * FROM Usuario WHERE cpf = ?`;
+        const resultado = await executarComandoSQL(query, [cpf]);
+
+        if (resultado.length === 0) {
+            throw new Error("Usuário não encontrado");
         }
-        return usuario;
+
+        return resultado[0];
     }
 
-    atualizar(cpfFiltro: any, usuario: any): Usuario[] {
-        let resultado = this.filtrarPorCampos(cpfFiltro);
-        if (!resultado) {
-            throw new Error("Usuario nao encontrado");
+    async atualizar(cpfFiltro: string, dados: Partial<Usuario>): Promise<void> {
+        const campos: string[] = [];
+        const valores: any[] = [];
+
+        if (dados.nome !== undefined) {
+            campos.push("nome = ?");
+            valores.push(dados.nome);
         }
-        const { nome, ativo, cpf, categoriaUsuario, curso } = usuario;
-        if (nome !== undefined) {
-            resultado[0].nome = nome;
+        if (dados.ativo !== undefined) {
+            campos.push("ativo = ?");
+            valores.push(dados.ativo);
         }
-        if (ativo !== undefined) {
-            resultado[0].ativo = ativo;
+        if (dados.categoriaUsuario !== undefined) {
+            campos.push("categoriaUsuario = ?");
+            valores.push(dados.categoriaUsuario);
         }
-        if (cpf !== undefined) {
-            resultado[0].cpf = cpf;
-        }
-        if (categoriaUsuario !== undefined) {
-            resultado[0].categoriaUsuario = categoriaUsuario;
-        }
-        if (curso !== undefined) {
-            resultado[0].curso = curso;
+        if (dados.curso !== undefined) {
+            campos.push("curso = ?");
+            valores.push(dados.curso);
         }
 
-        return resultado;
+        if (campos.length === 0) return;
+
+        const query = `UPDATE Usuario SET ${campos.join(", ")} WHERE cpf = ?`;
+        valores.push(cpfFiltro);
+
+        const resultado = await executarComandoSQL(query, valores);
+        if (resultado.affectedRows === 0) {
+            throw new Error("Usuário não encontrado para atualização");
+        }
+        return;
     }
 
-    remover(cpf: any): void {
-        const index = this.usuarios.findIndex(u => u.cpf === cpf);
-        if (index !== -1) {
-            this.usuarios.splice(index, 1);
-        } else {
-            throw new Error("Usuario nao encontrado");
+    async remover(cpf: string): Promise<void> {
+        const query = `DELETE FROM Usuario WHERE cpf = ?`;
+        const resultado = await executarComandoSQL(query, [cpf]);
+
+        if (resultado.affectedRows === 0) {
+            throw new Error("Usuário não encontrado para remoção");
         }
     }
 }

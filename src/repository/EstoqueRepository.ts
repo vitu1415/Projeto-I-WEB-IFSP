@@ -1,9 +1,12 @@
 import { Estoque } from "../model/Estoque"
+import { executarComandoSQL } from "../database/mysql";
 
 export class EstoqueRepository {
     private static instance: EstoqueRepository
-    private estoques: Estoque[] = []
-    private constructor() { }
+
+    private constructor() {
+        this.criarTabela()
+    }
 
     public static getInstance(): EstoqueRepository {
         if (!this.instance) {
@@ -12,72 +15,125 @@ export class EstoqueRepository {
         return this.instance
     }
 
-    listar(): Estoque[] {
-        return this.estoques
+    private async criarTabela() {
+        const query = `
+                CREATE TABLE IF NOT EXISTS Estoque (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    livroId INT NOT NULL,
+                    quantidade INT NOT NULL,
+                    quantidade_emprestada INT NOT NULL DEFAULT 0,
+                    disponivel BOOLEAN NOT NULL DEFAULT TRUE,
+                    FOREIGN KEY (livroId) REFERENCES Livro(id)
+                )
+            `;
+        try {
+            await executarComandoSQL(query, []);
+            console.log("Tabela Usuario verificada/criada com sucesso.");
+        } catch (err) {
+            console.error("Erro ao criar tabela Usuario:", err);
+        }
     }
 
-    cadastrar(estoque: Estoque): void {
-        this.estoques.push(estoque)
+    async listar(): Promise<Estoque[]> {
+        const query = `SELECT * FROM Estoque`;
+        try {
+            const resultado = await executarComandoSQL(query, []);
+            return resultado
+        } catch (err) {
+            console.error("Erro ao listar estoque:", err);
+            return [];
+        }
     }
 
-    filtrarPorCampos(estoque: any): Estoque[] {
-        const { id, livroId, quantidade, quantidade_emprestada, disponivel } = estoque;
+    async cadastrar(estoque: Estoque): Promise<Estoque> {
+        const query = `
+                INSERT INTO Estoque (livroId, quantidade, quantidade_emprestada, disponivel)
+                VALUES (?, ?, ?, ?)
+            `;
+        const params = [estoque.livroId, estoque.quantidade, estoque.quantidade_emprestada, estoque.disponivel];
+        return await executarComandoSQL(query, params);
+    }
 
-        let resultado = this.listar();
-        if (id !== undefined) {
-            resultado = resultado.filter(u => u.id === Number(id));
+    async filtrarPorCampos(filtro: Partial<Estoque>): Promise<Estoque[]> {
+        const condicoes: string[] = [];
+        const valores: any[] = [];
+
+        if(filtro.id !== undefined) {
+            condicoes.push("id = ?");
+            valores.push(filtro.id);
         }
-        if (livroId !== undefined) {
-            resultado = resultado.filter(u => u.livroId.id === livroId.id);
+        if (filtro.livroId !== undefined) {
+            condicoes.push("livroId = ?");
+            valores.push(filtro.livroId);
         }
-        if (quantidade !== undefined) {
-            resultado = resultado.filter(u => u.quantidade === quantidade);
+        if (filtro.quantidade !== undefined) {
+            condicoes.push("quantidade = ?");
+            valores.push(filtro.quantidade);
         }
-        if (quantidade_emprestada !== undefined) {
-            resultado = resultado.filter(u => u.quantidade_emprestada === quantidade_emprestada);
+        if (filtro.quantidade_emprestada !== undefined) {
+            condicoes.push("quantidade_emprestada = ?");
+            valores.push(filtro.quantidade_emprestada);
         }
-        if (disponivel !== undefined) {
-            resultado = resultado.filter(u => u.disponivel === disponivel);
+        if (filtro.disponivel !== undefined) {
+            condicoes.push("disponivel = ?");
+            valores.push(filtro.disponivel);
         }
 
+        const where = condicoes.length > 0 ? `WHERE ${condicoes.join(" AND ")}` : "";
+        const query = `SELECT * FROM Estoque ${where}`;
+        const resultado = await executarComandoSQL(query, valores);
         return resultado;
     }
 
-    findById(id: number): Estoque {
-        const estoque = this.listar().find(u => u.id === id);
-        if (!estoque) {
-            throw new Error("Estoque nao encontrado na base de dados");
+    async findById(id: string): Promise<Estoque> {
+        const query = `SELECT * FROM Estoque WHERE id = ?`;
+        const resultado = await executarComandoSQL(query, [id]);
+
+        if (resultado.length === 0) {
+            throw new Error("Estoque não encontrado");
         }
-        return estoque;
+
+        return resultado[0];
     }
 
-    atualizar(id: number, estoque: any): Estoque[] {
-        const estoqueEncontrado = this.filtrarPorCampos(id);
-        if(!estoqueEncontrado) {
-            throw new Error("Estoque nao encontrado na base de dados");
+    async atualizar(idFiltro: string, dados: Partial<Estoque>): Promise<Estoque[]> {
+        const campos: string[] = [];
+        const valores: any[] = [];
+
+        if (dados.livroId !== undefined) {
+            campos.push("livroId = ?");
+            valores.push(dados.livroId);
         }
-        const { livroId, quantidade, quantidade_emprestada, disponivel } = estoque;
-        if (livroId !== undefined) {
-            estoqueEncontrado[0].livroId = livroId;
+        if (dados.quantidade !== undefined) {
+            campos.push("quantidade = ?");
+            valores.push(dados.quantidade);
         }
-        if (quantidade !== undefined) {
-            estoqueEncontrado[0].quantidade = quantidade;
+        if (dados.quantidade_emprestada !== undefined) {
+            campos.push("quantidade_emprestada = ?");
+            valores.push(dados.quantidade_emprestada);
         }
-        if (quantidade_emprestada !== undefined) {
-            estoqueEncontrado[0].quantidade_emprestada = quantidade_emprestada;
+        if (dados.disponivel !== undefined) {
+            campos.push("disponivel = ?");
+            valores.push(dados.disponivel);
         }
-        if (disponivel !== undefined) {
-            estoqueEncontrado[0].disponivel = disponivel;
+
+        if (campos.length === 0) return [];
+
+        const query = `UPDATE Estoque SET ${campos.join(", ")} WHERE id = ?`;
+        valores.push(idFiltro);
+
+        const resultado = await executarComandoSQL(query, valores);
+        if (resultado.affectedRows === 0) {
+            throw new Error("Estoque não encontrado para atualização");
         }
-        return this.estoques;
+        return resultado;
     }
 
-    remover(id: any): void {
-        const index = this.estoques.findIndex(u => u.id === id);
-        if (index !== -1) {
-            this.estoques.splice(index, 1);
-        } else {
-            throw new Error("Estoque nao encontrado");
+    async remover(id: any): Promise<void> {
+        const query = `DELETE FROM Usuario WHERE id = ?`;
+        const resultado = await executarComandoSQL(query, [id]);
+        if (resultado.affectedRows === 0) {
+            throw new Error("Usuário não encontrado para remoção");
         }
     }
 }

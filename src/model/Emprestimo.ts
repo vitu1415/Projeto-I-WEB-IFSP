@@ -19,7 +19,7 @@ export class Emprestimo{
         this.dataEmprestimo = dataEmprestimo;
         this.dataDevolucao = dataDevolucao;
         this.dataEntrega = dataEntrega;
-        this.diasAtraso = diasAtraso;
+        this.diasAtraso = diasAtraso || 0;
         this.suspensaoAte = suspensaoAte;
     }
     private gerarId(): number {

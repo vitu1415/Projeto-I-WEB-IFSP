@@ -32,75 +32,111 @@ export class UsuarioService {
         const digito1 = this.calcularDigitoCPF(cpfArray.slice(0, 9), 10);
         const digito2 = this.calcularDigitoCPF(cpfArray.slice(0, 10), 11);
 
-        return digito1 === cpfArray[9] && digito2 === cpfArray[10];
+        const resultado: boolean = cpfArray[9] === digito1 && cpfArray[10] === digito2;
+
+        return resultado;
     }
 
-    cadastrarUsuario(usuarioData: any): Usuario {
+    async cadastrarUsuario(usuarioData: any): Promise<Usuario[]> {
         const { nome, cpf, } = usuarioData;
         let { categoriaUsuario, curso } = usuarioData
         const ativo: CategoriaStatus = CategoriaStatus.ATIVO;
         if (!nome || !cpf || !categoriaUsuario || !curso) {
             throw new Error("esta faltando dados que sao obrigatorios");
         }
+
         if (!this.ValidarCPF(cpf)) {
             throw new Error("CPF invalido");
         }
 
-        const usuarioExistente = this.repository.listar().find(u => u.cpf === cpf);
-        if (usuarioExistente) {
+        const usuarioExistente = await this.repository.filtrarPorCampos({ cpf });
+        if (usuarioExistente.length > 0) {
             throw new Error("CPF ja cadastrado");
         }
 
-        categoriaUsuario = this.categoriaUsuarioService.listarPorFiltro(categoriaUsuario);
+        categoriaUsuario = await this.categoriaUsuarioService.listarPorFiltro(categoriaUsuario);
         if (!categoriaUsuario) {
             throw new Error("Categoria Usuario nao encontrada");
         }
 
-        curso = this.cursoSerivce.listarPorFiltro(curso);
+        curso = await this.cursoSerivce.listarPorFiltro(curso);
         if (!curso) {
             throw new Error("Curso nao encontrado");
         }
 
-        const usuario = new Usuario(nome, cpf, ativo, categoriaUsuario, curso);
-        this.repository.cadastrar(usuario);
-        return usuario;
+        const usuario = new Usuario(nome, cpf, ativo, categoriaUsuario[0].id, curso[0].id);
+        const resultado:any = await this.repository.cadastrar(usuario);
+        return await this.listarUsuarios({ id: resultado.insertId });
     }
 
-    listarUsuarios(usuarioData: any): Usuario[] {
-        return this.repository.filtrarPorCampos(usuarioData);
+    async listarUsuarios(usuarioData: any): Promise<any[]> {
+        let usuarios: Usuario[];
+
+        if (usuarioData === undefined || Object.keys(usuarioData).length === 0) {
+            usuarios = await this.repository.listar();
+        }else {
+            usuarios = await this.repository.filtrarPorCampos(usuarioData);
+        }
+
+        const usuariosCompletos = await Promise.all(
+            usuarios.map(async (u) => {
+                const categoria = await this.categoriaUsuarioService.listarPorFiltro(u.categoriaUsuario);
+                const curso = await this.cursoSerivce.listarPorFiltro(u.curso);
+
+                return {
+                    id: u.id,
+                    nome: u.nome,
+                    cpf: u.cpf,
+                    ativo: u.ativo,
+                    categoriaUsuario: {
+                        id: categoria[0].id,
+                        nome: categoria[0].nome
+                    },
+                    curso: {
+                        id: curso[0].id,
+                        nome: curso[0].nome
+                    }
+                };
+            })
+        );
+
+        return usuariosCompletos;
+
     }
 
-    buscarUsuario(cpf: any): Usuario {
+    buscarUsuario(cpf: any): Promise<Usuario> {
         return this.repository.findByCPF(cpf);
     }
 
-    atualizarUsuario(cpf: any, usuarioData: any): Usuario[] {
+    async atualizarUsuario(cpf: any, usuarioData: any): Promise<void> {
         let { ativo, categoriaLivro, curso } = usuarioData;
         if (categoriaLivro) {
-            categoriaLivro = this.categoriaUsuarioService.listarPorFiltro(categoriaLivro.id);
+            categoriaLivro = await this.categoriaUsuarioService.listarPorFiltro(categoriaLivro.id);
             if (!categoriaLivro) {
                 throw new Error("Categoria Usuario nao encontrada");
             }
             usuarioData.categoriaUsuario = categoriaLivro;
         }
-        if (ativo !== "ATIVO" && ativo !== "INATIVO" && ativo !== "SUSPENSO") {
-            throw new Error("Categoria Usuario nao encontrada");
-        } else {
-            usuarioData.ativo = ativo;
+        if (ativo) {
+            if (ativo !== "ATIVO" && ativo !== "INATIVO" && ativo !== "SUSPENSO") {
+                throw new Error("Categoria Usuario nao encontrada");
+            } else {
+                usuarioData.ativo = ativo;
+            }
         }
         if (curso) {
-            curso = this.cursoSerivce.listarPorFiltro(curso.id);
+            curso = await this.cursoSerivce.listarPorFiltro(curso.id);
             if (!curso) {
                 throw new Error("Curso nao encontrado");
             }
             usuarioData.curso = curso;
         }
-        return this.repository.atualizar(cpf, usuarioData);
+        return await this.repository.atualizar(cpf, usuarioData);
     }
 
-    deletarUsuario(cpf: any): void {
+    async deletarUsuario(cpf: any): Promise<void> {
         const serviceEmprestimo = new EmmprestimoService();
-        const resultado = serviceEmprestimo.listarEmprestimoPorUsuario(cpf);
+        const resultado = await serviceEmprestimo.listarEmprestimoPorUsuario(cpf);
         let resultado_final = resultado.find(e => e.dataDevolucao === null);
         if (resultado_final !== undefined) {
             throw new Error("Usuario possui emprestimos em aberto, nao e possivel remover");
@@ -108,15 +144,15 @@ export class UsuarioService {
         return this.repository.remover(cpf);
     }
 
-    reativarUsuariosSuspensos() {
+    async reativarUsuariosSuspensos() {
         const serviceEmprestimo = new EmmprestimoService();
-        const usuarios = this.repository.listar();
+        const usuarios = await this.repository.listar();
 
         const hoje = new Date();
 
-        usuarios.forEach(usuario => {
+        for(const usuario of usuarios) {
             if (usuario.ativo !== CategoriaStatus.ATIVO && usuario.ativo !== CategoriaStatus.INATIVO) {
-                const emprestimos = serviceEmprestimo.listarEmprestimoPorUsuario(usuario.cpf);
+                const emprestimos = await serviceEmprestimo.listarEmprestimoPorUsuario(usuario.cpf);
 
                 const suspensoes = emprestimos
                     .filter(e => e.suspensaoAte !== null && new Date(e.suspensaoAte) <= hoje);
@@ -130,7 +166,7 @@ export class UsuarioService {
                     this.atualizarUsuario(usuario.cpf, usuario);
                 }
             }
-        });
+        };
     }
 
 }

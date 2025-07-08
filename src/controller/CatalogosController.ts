@@ -3,10 +3,10 @@ import { CategoriaUsuarioService } from "../service/CategoriaUsuarioService";
 import { CategoriaLivroService } from "../service/CategoriaLivroService";
 import { CursoService } from "../service/CursoService";
 
-export function listarCategoriaDeUsuario(req: Request, res: Response) {
+export async function listarCategoriaDeUsuario(req: Request, res: Response) {
     try {
         const service = new CategoriaUsuarioService();
-        const categorias = service.listar();
+        const categorias = await service.listar();
         res.status(200).json(categorias);
     } catch (error) {
         console.error("Erro ao buscar categorias de Usuarios:", error);
@@ -14,10 +14,10 @@ export function listarCategoriaDeUsuario(req: Request, res: Response) {
     }
 }
 
-export function listarCategoriaLivro(req: Request, res: Response) {
+export async function listarCategoriaLivro(req: Request, res: Response) {
     try {
         const service = new CategoriaLivroService();
-        const categorias = service.listar();
+        const categorias = await service.listar();
         res.status(200).json(categorias);
     } catch (error) {
         console.error("Erro ao buscar categorias de Livros:", error);
@@ -25,10 +25,10 @@ export function listarCategoriaLivro(req: Request, res: Response) {
     }
 }
 
-export function listarTiposDeCursos(req: Request, res: Response) {
+export async function listarTiposDeCursos(req: Request, res: Response) {
     try {
         const service = new CursoService();
-        const categorias = service.listar();
+        const categorias = await service.listar();
         res.status(200).json(categorias);
     } catch (error) {
         console.error("Erro ao buscar categorias de Cursos:", error);

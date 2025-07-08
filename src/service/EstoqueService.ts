@@ -24,24 +24,20 @@ export class EstoqueService {
     private serviceLivro = new LivroService();
 
 
-    cadastrarEstoque(estoqueData: any): Estoque {
-        const { quantidade, quantidade_emprestada, disponivel } = estoqueData;
-        let { livroId } = estoqueData;
+    async cadastrarEstoque(estoqueData: any): Promise<Estoque[]> {
+        const { quantidade, quantidade_emprestada, disponivel, livroId } = estoqueData;
 
         if (!livroId) {
             throw new Error("Id do livro nao foi passado");
         }
 
-        livroId = this.buscarListaLivro(livroId);
-
         const estoque = new Estoque(livroId, quantidade, quantidade_emprestada, disponivel);
-        this.repository.cadastrar(estoque);
-        return estoque;
+        const resultado: any = await this.repository.cadastrar(estoque);
+        return await this.listarPorFiltro({id: resultado.insertId});
     }
 
-    buscarListaLivro(livroId: any): LivroDTO {
-        let listaLivro = this.serviceLivro.listarLivros({ id: livroId });
-        console.log(listaLivro);
+    async buscarListaLivro(livroId: any): Promise<LivroDTO> {
+        let listaLivro = await this.serviceLivro.listarLivros({ id: livroId });
         if (!listaLivro || listaLivro.length === 0) {
             throw new Error("Livro nao encontrado na base de dados");
         }
@@ -62,19 +58,58 @@ export class EstoqueService {
         return livroRefatorado[0];
     }
 
-    listarEstoqueDisponivel(): Estoque[] {
-        return this.repository.filtrarPorCampos({ disponivel: true });
+    async listarEstoqueDisponivel(): Promise<any[]> {
+        const estoque = await this.repository.filtrarPorCampos({ disponivel: true });
+
+        const estoqueCompleto = await Promise.all(
+            estoque.map(async (e) => {
+                const livro = await this.serviceLivro.listarLivros({ id: e.livroId });
+                
+                return {
+                    id: e.id,
+                    livroId: {
+                        ...livro[0],
+                    },
+                    quantidade: e.quantidade,
+                    quantidade_emprestada: e.quantidade_emprestada,
+                    disponivel: e.disponivel
+                };
+            }
+        ));
+
+        return estoqueCompleto;
     }
 
-    listarPorFiltro(estoque: any): Estoque[] {
-        return this.repository.filtrarPorCampos(estoque);
+    async listarPorFiltro(estoque: any): Promise<any[]> {
+        const estoqueFiltrado = await this.repository.filtrarPorCampos(estoque);
+
+        if (estoqueFiltrado.length === 0) {
+            throw new Error("Estoque nao encontrado na base de dados");
+        }
+        const estoqueCompleto = await Promise.all(
+            estoqueFiltrado.map(async (e) => {
+                const livro = await this.serviceLivro.listarLivros({ id: e.livroId });
+                
+                return {
+                    id: e.id,
+                    livroId: {
+                        ...livro[0],
+                    },
+                    quantidade: e.quantidade,
+                    quantidade_emprestada: e.quantidade_emprestada,
+                    disponivel: e.disponivel
+                };
+            })
+        );
+
+        return estoqueCompleto;
     }
 
-    buscarExplarEmEstoque(id: any): Livro[] {
+    async buscarExplarEmEstoque(id: any): Promise<Livro[]> {
         let livro: Livro[];
-        const resultado = this.repository.findById(id);
+        const resultado = await this.repository.findById(id);
         if (resultado) {
-            livro = this.serviceLivro.listarLivros({ id: resultado.livroId.id });
+            livro = await this.serviceLivro.listarLivros({ id: resultado.livroId });
             if (!livro) {
                 throw new Error("Livro nao encontrado na base de dados");
             }
@@ -84,9 +119,9 @@ export class EstoqueService {
         }
     }
 
-    atualizarDisponibilidade(id: any, estoqueData: Estoque): Estoque[] {
+    async atualizarDisponibilidade(id: any, estoqueData: Estoque): Promise<Estoque[]> {
         const { quantidade, quantidade_emprestada } = estoqueData;
-        let resultado: Estoque[] = this.repository.filtrarPorCampos(id);
+        let resultado: Estoque[] = await this.repository.filtrarPorCampos({id: id});
         if (resultado) {
             if (quantidade > quantidade_emprestada) {
                 resultado[0].quantidade = quantidade;
@@ -94,7 +129,7 @@ export class EstoqueService {
                 if (resultado[0].quantidade === resultado[0].quantidade_emprestada) {
                     resultado[0].disponivel = false;
                 }
-                resultado = this.repository.atualizar(id, resultado[0]);
+                resultado = await this.repository.atualizar(id, resultado[0]);
             } else {
                 throw new Error("Quantidade emprestada nao pode ser maior que a quantidade total, livro indisponivel");
             }
@@ -104,23 +139,23 @@ export class EstoqueService {
         return resultado;
     }
 
-    devolucaoAtualizarDisponibilidade(id: any, estoqueData: Estoque): Estoque[] {
+    async devolucaoAtualizarDisponibilidade(id: any, estoqueData: Estoque): Promise<Estoque[]> {
         const { quantidade, quantidade_emprestada } = estoqueData;
-        let resultado: Estoque[] = this.repository.filtrarPorCampos(id);
+        let resultado: Estoque[] = await this.repository.filtrarPorCampos(id);
         if (resultado) {
             resultado[0].quantidade = quantidade;
             resultado[0].quantidade_emprestada = quantidade_emprestada - 1;
             resultado[0].disponivel = true;
-            resultado = this.repository.atualizar(id, resultado[0]);
+            resultado = await this.repository.atualizar(id, resultado[0]);
         } else {
             throw new Error("Nao existe esse codigo no estoque na base de dados");
         }
         return resultado;
     }
 
-    deletarEstoque(id: any): void {
+    async deletarEstoque(id: any): Promise<void> {
         const serviceEmprestimo = new EmmprestimoService();
-        const resultado = serviceEmprestimo.listarEmprestimoPorEstoque(id);
+        const resultado = await serviceEmprestimo.listarEmprestimoPorEstoque(id);
         let resultado_final = resultado.find(e => e.estoqueId.quantidade_emprestada != 0);
         if (resultado_final !== undefined) {
             throw new Error("Estoque possui emprestimos em aberto, nao e possivel remover");

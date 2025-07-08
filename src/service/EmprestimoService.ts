@@ -11,7 +11,7 @@ export class EmmprestimoService {
     private serviceUsuario = new UsuarioService();
     private serviceEstoque = new EstoqueService();
 
-    cadastrarEmprestimo(emprestimoData: any): Emprestimo {
+    async cadastrarEmprestimo(emprestimoData: any): Promise<Emprestimo[]> {
         const { usuarioId, estoqueId } = emprestimoData;
         let { dataEmprestimo, dataDevolucao, dataEntrega, diasAtraso, suspensasaoAte } = emprestimoData;
 
@@ -19,7 +19,7 @@ export class EmmprestimoService {
             throw new Error("Campos obrigatórios não preenchidos");
         }
 
-        const validadorUsuarioExistente = this.serviceUsuario.listarUsuarios(usuarioId);
+        const validadorUsuarioExistente = await this.serviceUsuario.listarUsuarios({id: usuarioId});
         if (validadorUsuarioExistente) {
             if (validadorUsuarioExistente[0].ativo === CategoriaStatus.INATIVO) {
                 throw new Error("Usuario inativo, nao pode pegar livro emprestado");
@@ -30,45 +30,52 @@ export class EmmprestimoService {
             throw new Error("Usuário nao encontrado na base de dados");
         }
 
-        const validadorEstoqueExistente = this.serviceEstoque.listarPorFiltro(estoqueId);
+        const validadorEstoqueExistente = await this.serviceEstoque.listarPorFiltro({ id: estoqueId });
         if (validadorEstoqueExistente) {
             if (validadorEstoqueExistente[0].disponivel === false) {
                 throw new Error("Livro indisponivel");
             } else {
                 dataEmprestimo = new Date();
-                dataEntrega = this.cadastrarEntrega(validadorUsuarioExistente[0].categoriaUsuario.nome,
+                dataEntrega = await this.cadastrarEntrega(validadorUsuarioExistente[0].categoriaUsuario.nome,
                     validadorUsuarioExistente[0].curso.nome,
                     validadorEstoqueExistente[0].livroId.categoriaLivro.nome, dataEmprestimo, validadorUsuarioExistente[0].id);
-                this.serviceEstoque.atualizarDisponibilidade(estoqueId, validadorEstoqueExistente[0]);
+                await this.serviceEstoque.atualizarDisponibilidade(estoqueId, validadorEstoqueExistente[0]);
             }
         } else {
             throw new Error("Estoque nao encontrado na base de dados");
         }
         const emprestimo = new Emprestimo(validadorUsuarioExistente[0], validadorEstoqueExistente[0], dataEmprestimo, dataDevolucao, dataEntrega, diasAtraso, suspensasaoAte);
-        this.repository.cadastrar(emprestimo);
-        return emprestimo;
+        const resultado: any = await this.repository.cadastrar(emprestimo);
+        return await this.listarEmprestimosPorFiltro({id: resultado.insertId});
     }
 
-    cadastrarEntrega(categoriaUsuarioNome: string, cursoNome: string, livroCategoria: string, dataEmprestimo: Date, id: number): Date {
-        let quantidadeDeEmprestimo: Emprestimo[] = this.repository.buscarPorUsuario(id);
+    calcularPrazo(curso: string, categoriaLivro: string, categoriaUsuario: string): number {
+        if (categoriaUsuario === "Professor") {
+            return 40;
+        } else {
+            if (curso === "ADS" && categoriaLivro === "Computação") {
+                return 30;
+            } else if (curso === "Pedagogia" && categoriaLivro === "Letras") {
+                return 30;
+            } else if (curso === "Administração" && categoriaLivro === "Gestão") {
+                return 30;
+            } else {
+                return 15;
+            }
+        }
+    }
+
+    async cadastrarEntrega(categoriaUsuarioNome: string, cursoNome: string, livroCategoria: string, dataEmprestimo: Date, id: number): Promise<Date> {
+        let quantidadeDeEmprestimo: Emprestimo[] = await this.repository.buscarPorUsuario(id);
         if (categoriaUsuarioNome === "Professor") {
             if (quantidadeDeEmprestimo.length < 5) {
-                return this.fomatadorData.adicionarDias(dataEmprestimo, 40);
+                return this.fomatadorData.adicionarDias(dataEmprestimo, this.calcularPrazo(cursoNome, livroCategoria, categoriaUsuarioNome));
             } else {
                 throw new Error("Professor nao pode pegar mais de 5 livros emprestados");
             }
         } else if (categoriaUsuarioNome === "Aluno") {
             if (quantidadeDeEmprestimo.length < 3) {
-                if (cursoNome === "ADS" && livroCategoria === "Computação") {
-                    return this.fomatadorData.adicionarDias(dataEmprestimo, 30);
-                } else if (cursoNome === "Pedagogia" && livroCategoria === "Letras") {
-                    return this.fomatadorData.adicionarDias(dataEmprestimo, 30);
-
-                } else if (cursoNome === "Administração" && livroCategoria === "Gestão") {
-                    return this.fomatadorData.adicionarDias(dataEmprestimo, 30);
-                } else {
-                    return this.fomatadorData.adicionarDias(dataEmprestimo, 15);
-                }
+                return this.fomatadorData.adicionarDias(dataEmprestimo, this.calcularPrazo(cursoNome, livroCategoria, categoriaUsuarioNome));
             } else {
                 throw new Error("Aluno nao pode pegar mais de 3 livros emprestados");
             }
@@ -77,69 +84,125 @@ export class EmmprestimoService {
         }
     }
 
-    listarTodosEmprestimos(): Emprestimo[] {
-        return this.repository.listar();
+    async listarEmprestimosCompletos(emprestimos: Emprestimo[]): Promise<any[]> {
+        const emprestimosCompletos = await Promise.all(
+            emprestimos.map(async (e) => {
+                const usuario = await this.serviceUsuario.listarUsuarios({ id: e.usuarioId });
+                const estoque = await this.serviceEstoque.listarPorFiltro({ id: e.estoqueId });
+                return {
+                    id: e.id,
+                    usuarioId: {
+                        id: usuario[0].id,
+                        nome: usuario[0].nome,
+                        cpf: usuario[0].cpf,
+                        ativo: usuario[0].ativo,
+                        categoriaUsuario: {
+                            id: usuario[0].categoriaUsuario.id,
+                            nome: usuario[0].categoriaUsuario.nome
+                        },
+                        curso: {
+                            id: usuario[0].curso.id,
+                            nome: usuario[0].curso.nome
+                        }
+                    },
+                    estoqueId: {
+                        id: estoque[0].id,
+                        livroId: {
+                            id: estoque[0].livroId.id,
+                            titulo: estoque[0].livroId.titulo,
+                            autor: estoque[0].livroId.autor,
+                            editora: estoque[0].livroId.editora,
+                            edicao: estoque[0].livroId.edicao,
+                            isbn: estoque[0].livroId.isbn,
+                            categoriaLivro: {
+                                id: estoque[0].livroId.categoriaLivro.id,
+                                nome: estoque[0].livroId.categoriaLivro.nome
+                            }
+                        },
+                        quantidade: estoque[0].quantidade,
+                        quantidade_emprestada: estoque[0].quantidade_emprestada,
+                        disponivel: estoque[0].disponivel
+                    },
+                    dataEmprestimo: e.dataEmprestimo,
+                    dataDevolucao: e.dataDevolucao,
+                    dataEntrega: e.dataEntrega,
+                    diasAtraso: e.diasAtraso,
+                    suspensaoAte: e.suspensaoAte
+                };
+            })
+        );
+        return emprestimosCompletos;
     }
 
-    listarEmprestimosPorUsuario(usuarioCPF: string): Emprestimo[] {
-        const resultado: Emprestimo[] = this.repository.filtrarPorUsuarioId(usuarioCPF);
+    async listarTodosEmprestimos(): Promise<any[]> {
+        const resultado = await this.repository.listar();
+        const emprestimosCompletos = await this.listarEmprestimosCompletos(resultado);
+        return emprestimosCompletos;
+    }
+
+    async listarEmprestimosPorFiltro(filtro: any): Promise<Emprestimo[]> {
+        const resultado: Emprestimo[] = await this.repository.filtrarPorCamposEstoque(filtro);
+        if (resultado.length === 0) {
+            throw new Error("Nenhum emprestimo encontrado com os filtros fornecidos");
+        }
+        const emprestimosCompletos = await this.listarEmprestimosCompletos(resultado);
+        return emprestimosCompletos;
+    }
+
+    async listarEmprestimosPorUsuario(usuarioCPF: string): Promise<Emprestimo[]> {
+        const resultado: Emprestimo[] = await this.repository.filtrarPorUsuarioId(usuarioCPF);
         if (resultado.length === 0) {
             throw new Error("Nenhum emprestimo encontrado para o usuario com id: " + usuarioCPF);
         }
         return resultado;
     }
 
-    devolucaoEmprestimo(id: any): void {
-        let resultado = this.repository.devolucaoEmprestimo(id);
-        this.serviceEstoque.devolucaoAtualizarDisponibilidade(resultado.estoqueId.id, resultado.estoqueId);
-        const diasDaEntrega = this.fomatadorData.diferencaEmDias(resultado.dataEntrega, resultado.dataDevolucao);
-        if (resultado.usuarioId.categoriaUsuario.nome === "Professor") {
-            if (diasDaEntrega > 40) {
-                const diasDeAtraso = diasDaEntrega - 40;
-                resultado = this.repository.cadastrarAtraso(id, diasDeAtraso);
-                resultado = this.repository.cadastrarSuspensao(id, this.fomatadorData.adicionarDias(resultado.dataEmprestimo, diasDeAtraso));
+    async vaidarDataDeEntregaEAtrasos(id: number, resultado: any, diasDeEntrega: number, categoriaUsuario: string, cursoNome: string, categoriaLivro: string): Promise<any> {
+        let diasDeAtraso: number = 0;
+        const prazo = this.calcularPrazo(cursoNome, categoriaLivro, categoriaUsuario);
+        if (prazo === 40 && categoriaUsuario === "Professor") {
+            if (diasDeEntrega > 40) {
+                diasDeAtraso = diasDeEntrega - 40;
+                resultado = await this.repository.cadastrarAtraso(id, diasDeAtraso);
             } else {
-                resultado = this.repository.cadastrarAtraso(id, 0);
+                resultado = await this.repository.cadastrarAtraso(id, diasDeAtraso);
             }
-        } else if (resultado.usuarioId.categoriaUsuario.nome === "Aluno") {
-            if (resultado.usuarioId.curso.nome === "ADS" && resultado.estoqueId.livroId.categoriaLivro.nome === "Computação") {
-                if (diasDaEntrega > 30) {
-                    const diasDeAtraso = diasDaEntrega - 30;
-                    resultado = this.repository.cadastrarAtraso(id, diasDeAtraso);
-                    resultado = this.repository.cadastrarSuspensao(id, this.fomatadorData.adicionarDias(resultado.dataEmprestimo, diasDeAtraso));
+        } else if (categoriaUsuario === "Aluno") {
+            if (prazo === 30 && (cursoNome === "ADS" &&
+                categoriaLivro === "Computação" ||
+                cursoNome === "Pedagogia" && categoriaLivro === "Letras" ||
+                cursoNome === "Administração" && categoriaLivro === "Gestão")) {
+                if (diasDeEntrega > 30) {
+                    diasDeAtraso = diasDeEntrega - 30;
+                    await this.repository.cadastrarAtraso(id, diasDeAtraso);
                 } else {
-                    resultado = this.repository.cadastrarAtraso(id, 0);
-                }
-            } else if (resultado.usuarioId.curso.nome === "Pedagogia" && resultado.estoqueId.livroId.categoriaLivro.nome === "Letras") {
-                if (diasDaEntrega > 30) {
-                    const diasDeAtraso = diasDaEntrega - 30;
-                    resultado = this.repository.cadastrarAtraso(id, diasDeAtraso);
-                    resultado = this.repository.cadastrarSuspensao(id, this.fomatadorData.adicionarDias(resultado.dataEmprestimo, diasDeAtraso));
-                } else {
-                    resultado = this.repository.cadastrarAtraso(id, 0);
-                }
-            } else if (resultado.usuarioId.curso.nome === "Administração" && resultado.estoqueId.livroId.categoriaLivro.nome === "Gestão") {
-                if (diasDaEntrega > 30) {
-                    const diasDeAtraso = diasDaEntrega - 30;
-                    resultado = this.repository.cadastrarAtraso(id, diasDeAtraso);
-                    resultado = this.repository.cadastrarSuspensao(id, this.fomatadorData.adicionarDias(resultado.dataEmprestimo, diasDeAtraso));
-                } else {
-                    resultado = this.repository.cadastrarAtraso(id, 0);
+                    await this.repository.cadastrarAtraso(id, diasDeAtraso);
                 }
             } else {
-                if (diasDaEntrega > 15) {
-                    const diasDeAtraso = diasDaEntrega - 15;
-                    resultado = this.repository.cadastrarAtraso(id, diasDeAtraso);
-                    resultado = this.repository.cadastrarSuspensao(id, this.fomatadorData.adicionarDias(resultado.dataEmprestimo, diasDeAtraso));
+                if (diasDeEntrega > 15) {
+                    diasDeAtraso = diasDeEntrega - 15;
+                    await this.repository.cadastrarAtraso(id, diasDeAtraso);
                 } else {
-                    resultado = this.repository.cadastrarAtraso(id, 0);
+                    await this.repository.cadastrarAtraso(id, diasDeAtraso);
                 }
             }
         }
     }
 
-    verificadorDeAtraso() {
-        const emprestimos = this.repository.listar();
+    async devolucaoEmprestimo(id: any): Promise<Emprestimo> {
+        let resultado: any = await this.repository.devolucaoEmprestimo(id);
+        resultado = await this.listarEmprestimosPorFiltro({ id: resultado.id });
+        await this.serviceEstoque.devolucaoAtualizarDisponibilidade(resultado[0].estoqueId.id, resultado[0].estoqueId);
+        const diasDaEntrega = this.fomatadorData.diferencaEmDias(resultado[0].dataEntrega, resultado[0].dataDevolucao);
+        this.vaidarDataDeEntregaEAtrasos(id, resultado[0], diasDaEntrega,
+            resultado[0].usuarioId.categoriaUsuario.nome, resultado[0].usuarioId.curso.nome,
+            resultado[0].estoqueId.livroId.categoriaLivro.nome);
+        resultado = await this.repository.devolucaoEmprestimo(id);
+        return resultado;
+    }
+
+    async verificadorDeAtraso() {
+        const emprestimos = await this.repository.listar();
         const hoje = new Date();
 
         const atrasosGravesPorUsuario: Record<string, number> = {};
@@ -164,7 +227,7 @@ export class EmmprestimoService {
 
         for (const cpf in atrasosGravesPorUsuario) {
             const qtdAtrasos = atrasosGravesPorUsuario[cpf];
-            const usuario = this.serviceUsuario.buscarUsuario(cpf);
+            const usuario = await this.serviceUsuario.buscarUsuario(cpf);
 
             if (qtdAtrasos >= 2) {
                 usuario.ativo = CategoriaStatus.INATIVO;
@@ -177,18 +240,18 @@ export class EmmprestimoService {
     }
 
 
-    listarEmprestimoPorUsuario(cpf: string): Emprestimo[] {
-        const resultado: Emprestimo[] = this.repository.buscarPorUsuario(cpf);
+    async listarEmprestimoPorUsuario(cpf: string): Promise<Emprestimo[]> {
+        const resultado: Emprestimo[] = await this.repository.buscarPorUsuario(cpf);
         return resultado;
     }
 
-    listarEmprestimoPorLivro(isbn: string): Emprestimo[] {
-        const resultado: Emprestimo[] = this.repository.buscarPorLivro(isbn);
+    async listarEmprestimoPorLivro(isbn: string): Promise<Emprestimo[]> {
+        const resultado: Emprestimo[] = await this.repository.buscarPorLivro(isbn);
         return resultado;
     }
 
-    listarEmprestimoPorEstoque(estoqueId: any): Emprestimo[] {
-        const resultado: Emprestimo[] = this.repository.BuscarPorEstoque(estoqueId);
+    async listarEmprestimoPorEstoque(estoqueId: any): Promise<Emprestimo[]> {
+        const resultado: Emprestimo[] = await this.repository.BuscarPorEstoque(estoqueId);
         return resultado;
     }
 }
