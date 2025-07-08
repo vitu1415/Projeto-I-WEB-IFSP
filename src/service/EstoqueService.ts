@@ -80,8 +80,29 @@ export class EstoqueService {
         return estoqueCompleto;
     }
 
-    listarPorFiltro(estoque: any): Promise<Estoque[]> {
-        return this.repository.filtrarPorCampos(estoque);
+    async listarPorFiltro(estoque: any): Promise<any[]> {
+        const estoqueFiltrado = await this.repository.filtrarPorCampos(estoque);
+
+        if (estoqueFiltrado.length === 0) {
+            throw new Error("Estoque nao encontrado na base de dados");
+        }
+        const estoqueCompleto = await Promise.all(
+            estoqueFiltrado.map(async (e) => {
+                const livro = await this.serviceLivro.listarLivros({ id: e.livroId });
+                
+                return {
+                    id: e.id,
+                    livroId: {
+                        ...livro[0],
+                    },
+                    quantidade: e.quantidade,
+                    quantidade_emprestada: e.quantidade_emprestada,
+                    disponivel: e.disponivel
+                };
+            })
+        );
+
+        return estoqueCompleto;
     }
 
     async buscarExplarEmEstoque(id: any): Promise<Livro[]> {
@@ -100,7 +121,7 @@ export class EstoqueService {
 
     async atualizarDisponibilidade(id: any, estoqueData: Estoque): Promise<Estoque[]> {
         const { quantidade, quantidade_emprestada } = estoqueData;
-        let resultado: Estoque[] = await this.repository.filtrarPorCampos(id);
+        let resultado: Estoque[] = await this.repository.filtrarPorCampos({id: id});
         if (resultado) {
             if (quantidade > quantidade_emprestada) {
                 resultado[0].quantidade = quantidade;

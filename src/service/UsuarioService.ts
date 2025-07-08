@@ -134,9 +134,9 @@ export class UsuarioService {
         return await this.repository.atualizar(cpf, usuarioData);
     }
 
-    deletarUsuario(cpf: any): Promise<void> {
+    async deletarUsuario(cpf: any): Promise<void> {
         const serviceEmprestimo = new EmmprestimoService();
-        const resultado = serviceEmprestimo.listarEmprestimoPorUsuario(cpf);
+        const resultado = await serviceEmprestimo.listarEmprestimoPorUsuario(cpf);
         let resultado_final = resultado.find(e => e.dataDevolucao === null);
         if (resultado_final !== undefined) {
             throw new Error("Usuario possui emprestimos em aberto, nao e possivel remover");
@@ -150,9 +150,9 @@ export class UsuarioService {
 
         const hoje = new Date();
 
-        usuarios.forEach(usuario => {
+        for(const usuario of usuarios) {
             if (usuario.ativo !== CategoriaStatus.ATIVO && usuario.ativo !== CategoriaStatus.INATIVO) {
-                const emprestimos = serviceEmprestimo.listarEmprestimoPorUsuario(usuario.cpf);
+                const emprestimos = await serviceEmprestimo.listarEmprestimoPorUsuario(usuario.cpf);
 
                 const suspensoes = emprestimos
                     .filter(e => e.suspensaoAte !== null && new Date(e.suspensaoAte) <= hoje);
@@ -166,7 +166,7 @@ export class UsuarioService {
                     this.atualizarUsuario(usuario.cpf, usuario);
                 }
             }
-        });
+        };
     }
 
 }

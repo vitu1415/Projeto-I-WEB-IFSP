@@ -11,16 +11,16 @@ export class Emprestimo{
     diasAtraso: number;
     suspensaoAte: Date;
     constructor( usuarioId: Usuario, estoqueId: Estoque, 
-        dataEmprestimo?: Date, dataDevolucao?: Date, dataEntrega?: Date, 
-        diasAtraso?: number, suspensaoAte?: Date){
+        dataEmprestimo: Date, dataDevolucao: Date, dataEntrega: Date, 
+        diasAtraso: number, suspensaoAte: Date){
         this.id = this.gerarId();
         this.usuarioId = usuarioId;
         this.estoqueId = estoqueId;
-        this.dataEmprestimo = dataEmprestimo || new Date();
-        this.dataDevolucao = dataDevolucao || new Date();
-        this.dataEntrega = dataEntrega || new Date();
+        this.dataEmprestimo = dataEmprestimo;
+        this.dataDevolucao = dataDevolucao;
+        this.dataEntrega = dataEntrega;
         this.diasAtraso = diasAtraso || 0;
-        this.suspensaoAte = suspensaoAte || new Date();
+        this.suspensaoAte = suspensaoAte;
     }
     private gerarId(): number {
         return Date.now();

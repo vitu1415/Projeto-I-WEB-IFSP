@@ -119,7 +119,7 @@ export class EstoqueRepository {
 
         if (campos.length === 0) return [];
 
-        const query = `UPDATE Estoque SET ${campos.join(", ")} WHERE cpf = ?`;
+        const query = `UPDATE Estoque SET ${campos.join(", ")} WHERE id = ?`;
         valores.push(idFiltro);
 
         const resultado = await executarComandoSQL(query, valores);

@@ -79,9 +79,9 @@ export class LivroService {
         return await this.repository.atualizar(isbnFiltro, livro);
     }
 
-    removerLivro(isbn: any): void {
+    async removerLivro(isbn: any): Promise<void> {
         const serviceEmprestimo = new EmmprestimoService();
-        const resultado = serviceEmprestimo.listarEmprestimoPorLivro(isbn);
+        const resultado = await serviceEmprestimo.listarEmprestimoPorLivro(isbn);
         let resultado_final = resultado.find(e => e.dataDevolucao === null);
         if (resultado_final !== undefined) {
             throw new Error("Livro possui emprestimos em aberto, nao e possivel remover");
