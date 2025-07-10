@@ -6,37 +6,14 @@ import { CategoriaUsuarioService } from "./CategoriaUsuarioService";
 import { CursoService } from "./CursoService";
 import { EmprestimoService } from "./EmprestimoService";
 import { FormatadorDate } from "../Utils/FormatadorDate";
+import { ValidacaoCPF } from "../Utils/ValidacaoCPF";
 
 export class UsuarioService {
     private repository = UsuarioRepository.getInstance();
     private categoriaUsuarioService = new CategoriaUsuarioService();
     private cursoSerivce = new CursoService();
     private formatadorData = new FormatadorDate();
-
-    calcularDigitoCPF(cpfParcial: number[], fator: number): number {
-        let soma = 0;
-        for (let i = 0; i < cpfParcial.length; i++) {
-            soma += cpfParcial[i] * (fator - i);
-        }
-
-        const resto = soma % 11;
-        return resto < 2 ? 0 : 11 - resto;
-    }
-
-    ValidarCPF(cpf: string): boolean {
-        let sequenciaRepetida = new Set(cpf).size === 1;
-        if (cpf.length != 11 || sequenciaRepetida) {
-            return false;
-        }
-        const cpfArray = cpf.split('').map(Number);
-
-        const digito1 = this.calcularDigitoCPF(cpfArray.slice(0, 9), 10);
-        const digito2 = this.calcularDigitoCPF(cpfArray.slice(0, 10), 11);
-
-        const resultado: boolean = cpfArray[9] === digito1 && cpfArray[10] === digito2;
-
-        return resultado;
-    }
+    private validacaoCPF = new ValidacaoCPF();
 
     async cadastrarUsuario(usuarioData: any): Promise<UsuarioResponseDTO[]> {
         const { nome, cpf, } = usuarioData;
@@ -46,7 +23,7 @@ export class UsuarioService {
             throw new Error("esta faltando dados que sao obrigatorios");
         }
 
-        if (!this.ValidarCPF(cpf)) {
+        if (!this.validacaoCPF.ValidarCPF(cpf)) {
             throw new Error("CPF invalido");
         }
 
@@ -137,12 +114,16 @@ export class UsuarioService {
 
     async deletarUsuario(cpf: any): Promise<void> {
         const serviceEmprestimo = new EmprestimoService();
-        const resultado = await serviceEmprestimo.listarEmprestimoPorUsuario(cpf);
+        let usuario = await this.repository.findByCPF(cpf);
+        if (!usuario) {
+            throw new Error("Usuario nao encontrado");
+        }
+        const resultado = await serviceEmprestimo.listarEmprestimoPorUsuario(usuario.id);
         let resultado_final = resultado.find(e => e.dataDevolucao === null);
         if (resultado_final !== undefined) {
             throw new Error("Usuario possui emprestimos em aberto, nao e possivel remover");
         }
-        return this.repository.remover(cpf);
+        return await this.repository.atualizar(cpf, { ativo: CategoriaStatus.INATIVO });
     }
 
     async reativarUsuariosSuspensos() {
@@ -152,7 +133,7 @@ export class UsuarioService {
         const hoje = new Date();
 
         for (const usuario of usuarios) {
-            const emprestimos = await serviceEmprestimo.listarEmprestimoPorUsuario(usuario.cpf);
+            const emprestimos = await serviceEmprestimo.listarEmprestimoPorUsuario(usuario.id);
 
             const suspensoes = emprestimos
                 .filter(e => e.suspensaoAte !== null && new Date(e.suspensaoAte) <= hoje);

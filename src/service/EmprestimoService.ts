@@ -71,6 +71,7 @@ export class EmprestimoService {
 
     async cadastrarEntrega(categoriaUsuarioNome: string, cursoNome: string, livroCategoria: string, dataEmprestimo: Date, id: number): Promise<Date> {
         let quantidadeDeEmprestimo: Emprestimo[] = await this.repository.buscarPorUsuario(id);
+        quantidadeDeEmprestimo = quantidadeDeEmprestimo.filter(e => e.dataDevolucao === null);
         if (categoriaUsuarioNome === "Professor") {
             if (quantidadeDeEmprestimo.length < 5) {
                 return this.fomatadorData.adicionarDias(dataEmprestimo, this.calcularPrazo(cursoNome, livroCategoria, categoriaUsuarioNome));
@@ -196,11 +197,11 @@ export class EmprestimoService {
     async devolucaoEmprestimo(id: any): Promise<Emprestimo> {
         let resultado: any = await this.repository.devolucaoEmprestimo(id);
         resultado = await this.listarEmprestimosPorFiltro({ id: resultado.id });
-        await this.serviceEstoque.devolucaoAtualizarDisponibilidade(resultado[0].estoqueId.id, resultado[0].estoqueId);
-        const diasDaEntrega = this.fomatadorData.diferencaEmDias(resultado[0].dataEntrega, resultado[0].dataDevolucao);
-        this.vaidarDataDeEntregaEAtrasos(id, resultado[0], diasDaEntrega,
-            resultado[0].usuarioId.categoriaUsuario.nome, resultado[0].usuarioId.curso.nome,
-            resultado[0].estoqueId.livroId.categoriaLivro.nome);
+        await this.serviceEstoque.devolucaoAtualizarDisponibilidade(resultado[0].estoque.id, resultado[0].estoque);
+        const diasDaEntrega = await this.fomatadorData.diferencaEmDias(resultado[0].dataEntrega, resultado[0].dataDevolucao);
+        await this.vaidarDataDeEntregaEAtrasos(id, resultado[0], diasDaEntrega,
+            resultado[0].usuario.categoriaUsuario.nome, resultado[0].usuario.curso.nome,
+            resultado[0].estoque.livroId.categoriaLivro.nome);
         resultado = await this.repository.devolucaoEmprestimo(id);
         return resultado;
     }
@@ -244,8 +245,8 @@ export class EmprestimoService {
     }
 
 
-    async listarEmprestimoPorUsuario(cpf: string): Promise<Emprestimo[]> {
-        const resultado: Emprestimo[] = await this.repository.buscarPorUsuario(cpf);
+    async listarEmprestimoPorUsuario(id: number): Promise<Emprestimo[]> {
+        const resultado: Emprestimo[] = await this.repository.buscarPorUsuario(id);
         return resultado;
     }
 

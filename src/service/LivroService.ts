@@ -3,6 +3,7 @@ import { LivroResponseDTO } from "../model/Livro/dto/LivroResponseDTO";
 import { LivroRepository } from "../repository/LivroRepository";
 import { CategoriaLivroService } from "./CategoriaLivroService";
 import { EmprestimoService } from "./EmprestimoService";
+import { EstoqueService } from "./EstoqueService";
 
 export class LivroService {
     private repository = LivroRepository.getInstance()
@@ -81,12 +82,12 @@ export class LivroService {
     }
 
     async removerLivro(isbn: any): Promise<void> {
-        const serviceEmprestimo = new EmprestimoService();
-        const resultado = await serviceEmprestimo.listarEmprestimoPorLivro(isbn);
-        let resultado_final = resultado.find(e => e.dataDevolucao === null);
-        if (resultado_final !== undefined) {
-            throw new Error("Livro possui emprestimos em aberto, nao e possivel remover");
+        const service = new EstoqueService();
+        let resultado = await this.repository.filtrarPorCampos({ isbn });
+        if (resultado.length === 0) {
+            throw new Error("Livro nao encontrado na base de dados");
         }
-        this.repository.remover(isbn);
+        await service.validacaoParaDesativarEstoque(resultado[0].id);
+        return;
     }
 }

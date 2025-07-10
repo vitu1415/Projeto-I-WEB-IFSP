@@ -209,13 +209,13 @@ export class EmprestimoRepository{
         return emprestimo;
     }
 
-    buscarPorUsuario(cpf: any): Promise<Emprestimo[]> {
-        const query = `SELECT * FROM Usuario WHERE cpf = ?`;
-        return executarComandoSQL(query, [cpf])
+    buscarPorUsuario(id: any): Promise<Emprestimo[]> {
+        const query = `SELECT * FROM Emprestimo WHERE usuarioId = ?`;
+        return executarComandoSQL(query, [id]);
     }
 
     buscarPorLivro(isbn: any): Promise<Emprestimo[]> {
-        const query = `SELECT * FROM Livro WHERE isbn = ?`;
+        const query = `SELECT * FROM Emprestimo WHERE LivroId = ?`;
         return executarComandoSQL(query, [isbn]);
     }
 

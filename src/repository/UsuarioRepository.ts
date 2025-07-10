@@ -138,13 +138,4 @@ export class UsuarioRepository {
         }
         return;
     }
-
-    async remover(cpf: string): Promise<void> {
-        const query = `DELETE FROM Usuario WHERE cpf = ?`;
-        const resultado = await executarComandoSQL(query, [cpf]);
-
-        if (resultado.affectedRows === 0) {
-            throw new Error("Usuário não encontrado para remoção");
-        }
-    }
 }

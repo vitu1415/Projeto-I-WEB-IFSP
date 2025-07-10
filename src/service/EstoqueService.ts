@@ -167,13 +167,33 @@ export class EstoqueService {
         return resultado;
     }
 
-    async deletarEstoque(id: any): Promise<void> {
-        const serviceEmprestimo = new EmprestimoService();
-        const resultado = await serviceEmprestimo.listarEmprestimoPorEstoque(id);
-        let resultado_final = resultado.find(e => e.estoqueId.quantidade_emprestada != 0);
-        if (resultado_final !== undefined) {
-            throw new Error("Estoque possui emprestimos em aberto, nao e possivel remover");
+    async validacaoParaDesativarEstoque(id: any): Promise<void> {
+        let consulta = await this.repository.filtrarPorCampos({ livroId: id });
+        if (consulta.length === 0) {
+            return;
         }
-        return this.repository.remover(id);
+        if (consulta[0].quantidade_emprestada > 0) {
+            throw new Error("Estoque possui emprestimos em aberto, nao e possivel remover");
+        } 
+        consulta[0].disponivel = false;
+        consulta[0].quantidade = 0;
+        consulta[0].quantidade_emprestada = 0;
+        await this.repository.atualizar(id, consulta[0]);
+        return;
+    }
+
+    async deletarEstoque(id: any): Promise<void> {
+        let consulta = await this.repository.filtrarPorCampos({ id: id });
+        if (consulta.length === 0) {
+            throw new Error("Estoque nao encontrado na base de dados");
+        }
+        if (consulta[0].quantidade_emprestada > 0) {
+            throw new Error("Estoque possui emprestimos em aberto, nao e possivel remover");
+        } 
+        consulta[0].disponivel = false;
+        consulta[0].quantidade = 0;
+        consulta[0].quantidade_emprestada = 0;
+        await this.repository.atualizar(id, consulta[0]);
+        return;
     }
 }
