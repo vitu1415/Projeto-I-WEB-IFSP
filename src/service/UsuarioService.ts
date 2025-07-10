@@ -4,7 +4,7 @@ import { UsuarioRepository } from "../repository/UsuarioRepository";
 import { CategoriaUsuarioService } from "./CategoriaUsuarioService";
 import { CursoService } from "./CursoService";
 import { EmmprestimoService } from "./EmprestimoService";
-import { FormatadorDate } from "./FormatadorDate";
+import { FormatadorDate } from "../Utils/FormatadorDate";
 
 export class UsuarioService {
     private repository = UsuarioRepository.getInstance();

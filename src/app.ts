@@ -1,5 +1,5 @@
 import express from 'express';
-import { iniciarVerificacaoDeAtrasos } from './Utils/ValidadorDeAtrasos';
+import { iniciarVerificacaoDeAtrasos } from './rotina/ValidadorDeAtrasos';
 import { conectarBanco } from './database/mysql';
 
 const PORT = process.env.PORT || 3090;

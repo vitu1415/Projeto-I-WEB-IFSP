@@ -2,7 +2,7 @@ import { CategoriaStatus } from "../model/CategoriaStatusEnum";
 import { Emprestimo } from "../model/Emprestimo";
 import { EmprestimoRepository } from "../repository/EmprestimoRepository";
 import { EstoqueService } from "./EstoqueService";
-import { FormatadorDate } from "./FormatadorDate";
+import { FormatadorDate } from "../Utils/FormatadorDate";
 import { UsuarioService } from "./UsuarioService";
 
 export class EmmprestimoService {
