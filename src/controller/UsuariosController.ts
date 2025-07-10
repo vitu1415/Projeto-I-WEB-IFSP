@@ -6,6 +6,7 @@ import {
     Path,
     Post,
     Put,
+    Query,
     Res,
     Route,
     Tags,
@@ -38,11 +39,12 @@ export class UsuarioController extends Controller {
 
     @Get()
     public async listarUsuarios(
+        @Query() filtro: any = {},
         @Res() fail: TsoaResponse<500, BasicResponseDto>,
         @Res() success: TsoaResponse<200, BasicResponseDto<UsuarioResponseDTO[]>>
     ): Promise<void> {
         try {
-            const usuarios = await this.usuarioService.listarUsuarios({});
+            const usuarios = await this.usuarioService.listarUsuarios(filtro);
             return success(200, new BasicResponseDto("Usuários listados com sucesso", usuarios));
         } catch (error: any) {
             return fail(500, new BasicResponseDto(error.message));

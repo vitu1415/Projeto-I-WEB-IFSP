@@ -1,4 +1,5 @@
-import { Livro } from "../model/Entity/LivroEntity";
+import { Livro } from "../model/Livro/Entity/LivroEntity";
+import { LivroResponseDTO } from "../model/Livro/dto/LivroResponseDTO";
 import { LivroRepository } from "../repository/LivroRepository";
 import { CategoriaLivroService } from "./CategoriaLivroService";
 import { EmmprestimoService } from "./EmprestimoService";
@@ -7,7 +8,7 @@ export class LivroService {
     private repository = LivroRepository.getInstance()
     private categoriaLivroService = new CategoriaLivroService();
 
-    async criarCadastrarLivro(livroData: any): Promise<Livro[]> {
+    async criarCadastrarLivro(livroData: any): Promise<LivroResponseDTO[]> {
         const { titulo, isbn, autor, edicao, editora } = livroData;
         let { categoriaLivro } = livroData;
         if (!titulo || !isbn || !autor || !edicao || !editora || !categoriaLivro) {
