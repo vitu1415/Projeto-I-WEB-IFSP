@@ -13,7 +13,7 @@ import { CursoService } from "../service/CursoService";
 
 import { CategoriaUsuarioDTO } from "../model/Catalogo/dto/CategoriaUsuarioDTO";
 import { CategoriaLivroDTO } from "../model/Catalogo/dto/CategoriaLivroDTO";
-import { CategoriaCursoDTO } from "../model/Catalogo/dto/CategoriaCursoDTO";
+import { CursoDTO } from "../model/Catalogo/dto/CursoDTO";
 import { BasicResponseDto } from "../model/BasicResponseDTO";
 
 @Route("categorias")
@@ -53,12 +53,12 @@ export class CategoriaController extends Controller {
   @Get("/cursos")
   public async listarTiposDeCursos(
     @Res() fail: TsoaResponse<500, BasicResponseDto>,
-    @Res() success: TsoaResponse<200, BasicResponseDto<CategoriaCursoDTO[]>>
+    @Res() success: TsoaResponse<200, BasicResponseDto<CursoDTO[]>>
   ): Promise<void> {
     try {
       const service = new CursoService();
       const cursos = await service.listar();
-      const dtos: CategoriaCursoDTO[] = cursos.map(c => ({ id: c.id, nome: c.nome }));
+      const dtos: CursoDTO[] = cursos.map(c => ({ id: c.id, nome: c.nome }));
       return success(200, new BasicResponseDto("Tipos de curso listados com sucesso", dtos));
     } catch (error: any) {
       return fail(500, new BasicResponseDto("Erro ao buscar tipos de curso", error.message));

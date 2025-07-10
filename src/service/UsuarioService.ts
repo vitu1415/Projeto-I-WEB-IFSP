@@ -1,5 +1,6 @@
 import { CategoriaStatus } from "../model/enum/CategoriaStatusEnum";
-import { Usuario } from "../model/Entity/UsuarioEntity";
+import { Usuario } from "../model/Usuario/Entity/UsuarioEntity";
+import { UsuarioResponseDTO } from "../model/Usuario/dto/UsuarioResponseDTO";
 import { UsuarioRepository } from "../repository/UsuarioRepository";
 import { CategoriaUsuarioService } from "./CategoriaUsuarioService";
 import { CursoService } from "./CursoService";
@@ -37,7 +38,7 @@ export class UsuarioService {
         return resultado;
     }
 
-    async cadastrarUsuario(usuarioData: any): Promise<Usuario[]> {
+    async cadastrarUsuario(usuarioData: any): Promise<UsuarioResponseDTO[]> {
         const { nome, cpf, } = usuarioData;
         let { categoriaUsuario, curso } = usuarioData
         const ativo: CategoriaStatus = CategoriaStatus.ATIVO;

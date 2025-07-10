@@ -1,66 +1,95 @@
-import { Request, Response } from "express";
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Path,
+    Post,
+    Put,
+    Res,
+    Route,
+    Tags,
+    TsoaResponse
+} from "tsoa";
+
 import { UsuarioService } from "../service/UsuarioService";
-import { get } from "http";
+import { UsuarioRequestDTO } from "../model/Usuario/dto/UsuarioRequestDTO";
+import { UsuarioResponseDTO } from "../model/Usuario/dto/UsuarioResponseDTO";
+import { BasicResponseDto } from "../model/BasicResponseDTO";
 
-const usuarioService = new UsuarioService();
-export async function cadastrarUsuairos(req: Request, res: Response) {
-    try {
-        const novoUsuario = await usuarioService.cadastrarUsuario(req.body);
-        res.status(201).json(
-            {
-                message: "Usuario cadastrado com sucesso",
-                usuario: novoUsuario
-            }
-        );
-    } catch (error: any) {
-        res.status(400).json({ message: error.message });
-    }
-}
+@Route("usuario")
+@Tags("Usuario")
+export class UsuarioController extends Controller {
+    private usuarioService = new UsuarioService();
 
-//filtro de query
-export async function listarUsuarios(req: Request, res: Response) {
-    try{
-        const usuarios = await usuarioService.listarUsuarios(req.query);
-        res.status(200).json(usuarios);
-    } catch (error: any) {
-        res.status(500).json({ message: error.message });
+    @Post()
+    public async cadastrarUsuario(
+        @Body() dto: UsuarioRequestDTO,
+        @Res() fail: TsoaResponse<400, BasicResponseDto>,
+        @Res() success: TsoaResponse<201, BasicResponseDto<UsuarioResponseDTO[]>>
+    ): Promise<void> {
+        try {
+            const novoUsuario = await this.usuarioService.cadastrarUsuario(dto);
+            return success(201, new BasicResponseDto("Usuário cadastrado com sucesso", novoUsuario));
+        } catch (error: any) {
+            return fail(400, new BasicResponseDto(error.message));
+        }
     }
-}
-export async function filtrarPorCPF(req: Request, res: Response) {
-    try{
-        const cpf = req.params.cpf;
-        const usuarios = await usuarioService.listarUsuarios({cpf});
-        res.status(200).json(usuarios);
-    } catch (error: any) {
-        res.status(404).json({ message: error.message });
-    }
-}
-export async function ataulizarUsuario(req: Request, res: Response) {
-    try{
-        const cpf = req.params.cpf;
-        const usuario = await usuarioService.atualizarUsuario(cpf, req.body);
-        res.status(200).json(
-            {
-                message: "Usuario atualizado com sucesso",
-                usuario: usuario
-            }
-        );
-    } catch (error: any) {
-        res.status(404).json({ message: error.message });
-    }
-}
 
-//so deletar caso nao tenha nenhum emprestimo no nome - FALTA
-export async function deletarUsuario(req: Request, res: Response) {
-    try{
-        const cpf = req.params.cpf;
-        await usuarioService.deletarUsuario(cpf);
-        res.status(204).json(
-            {
-                message: "Usuario deletado com sucesso",
-            }
-        );
-    } catch (error: any) {
-        res.status(404).json({ message: error.message });
+    @Get()
+    public async listarUsuarios(
+        @Res() fail: TsoaResponse<500, BasicResponseDto>,
+        @Res() success: TsoaResponse<200, BasicResponseDto<UsuarioResponseDTO[]>>
+    ): Promise<void> {
+        try {
+            const usuarios = await this.usuarioService.listarUsuarios({});
+            return success(200, new BasicResponseDto("Usuários listados com sucesso", usuarios));
+        } catch (error: any) {
+            return fail(500, new BasicResponseDto(error.message));
+        }
+    }
+
+    @Get("{cpf}")
+    public async filtrarPorCPF(
+        @Path() cpf: string,
+        @Res() fail: TsoaResponse<404, BasicResponseDto>,
+        @Res() success: TsoaResponse<200, BasicResponseDto<UsuarioResponseDTO>>
+    ): Promise<void> {
+        try {
+            const usuarios = await this.usuarioService.listarUsuarios({ cpf });
+            if (!usuarios.length) throw new Error("Usuário não encontrado");
+            return success(200, new BasicResponseDto("Usuário encontrado", usuarios[0]));
+        } catch (error: any) {
+            return fail(404, new BasicResponseDto(error.message));
+        }
+    }
+
+    @Put("{cpf}")
+    public async atualizarUsuario(
+        @Path() cpf: string,
+        @Body() dto: UsuarioRequestDTO,
+        @Res() fail: TsoaResponse<404, BasicResponseDto>,
+        @Res() success: TsoaResponse<200, BasicResponseDto<UsuarioResponseDTO>>
+    ): Promise<void> {
+        try {
+            await this.usuarioService.atualizarUsuario(cpf, dto);
+            return success(200, new BasicResponseDto("Usuário atualizado com sucesso"));
+        } catch (error: any) {
+            return fail(404, new BasicResponseDto(error.message));
+        }
+    }
+
+    @Delete("{cpf}")
+    public async deletarUsuario(
+        @Path() cpf: string,
+        @Res() fail: TsoaResponse<404, BasicResponseDto>,
+        @Res() success: TsoaResponse<204, BasicResponseDto>
+    ): Promise<void> {
+        try {
+            await this.usuarioService.deletarUsuario(cpf);
+            return success(204, new BasicResponseDto("Usuário deletado com sucesso"));
+        } catch (error: any) {
+            return fail(404, new BasicResponseDto(error.message));
+        }
     }
 }

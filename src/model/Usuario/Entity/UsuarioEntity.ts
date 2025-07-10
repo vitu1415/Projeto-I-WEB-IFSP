@@ -1,6 +1,6 @@
-import { CategoriaStatus } from "../enum/CategoriaStatusEnum";
-import { CategoriaUsuario } from "../Catalogo/Entity/CategoriaUsuarioEntity";
-import { Curso } from "../Catalogo/Entity/CursoEntity";
+import { CategoriaStatus } from "../../enum/CategoriaStatusEnum";
+import { CategoriaUsuario } from "../../Catalogo/Entity/CategoriaUsuarioEntity";
+import { Curso } from "../../Catalogo/Entity/CursoEntity";
 
 export class Usuario{
     id: number;
