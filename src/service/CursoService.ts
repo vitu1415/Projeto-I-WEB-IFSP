@@ -1,4 +1,4 @@
-import { Curso } from "../model/Curso";
+import { Curso } from "../model/Catalogo/Entity/CursoEntity";
 import { CursoRepository } from "../repository/CursoRepository";
 
 export class CursoService {

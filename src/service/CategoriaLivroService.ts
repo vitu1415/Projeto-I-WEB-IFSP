@@ -1,4 +1,4 @@
-import { CategoriaLivro } from "../model/CategoriaLivro"
+import { CategoriaLivro } from "../model/Catalogo/Entity/CategoriaLivroEntity"
 import { CategoriaLivroRepository } from "../repository/CategoriaLivroRepository"
 
 export class CategoriaLivroService {

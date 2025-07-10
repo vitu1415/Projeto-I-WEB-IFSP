@@ -1,4 +1,4 @@
-import { CategoriaLivro } from "../model/CategoriaLivro";
+import { CategoriaLivro } from "../model/Catalogo/Entity/CategoriaLivroEntity";
 import { executarComandoSQL } from "../database/mysql";
 
 export class CategoriaLivroRepository {

@@ -1,13 +1,15 @@
-import { Livro } from "../model/Livro";
+import { Livro } from "../model/Livro/Entity/LivroEntity";
+import { LivroResponseDTO } from "../model/Livro/dto/LivroResponseDTO";
 import { LivroRepository } from "../repository/LivroRepository";
 import { CategoriaLivroService } from "./CategoriaLivroService";
-import { EmmprestimoService } from "./EmprestimoService";
+import { EmprestimoService } from "./EmprestimoService";
+import { EstoqueService } from "./EstoqueService";
 
 export class LivroService {
     private repository = LivroRepository.getInstance()
     private categoriaLivroService = new CategoriaLivroService();
 
-    async criarCadastrarLivro(livroData: any): Promise<Livro[]> {
+    async criarCadastrarLivro(livroData: any): Promise<LivroResponseDTO[]> {
         const { titulo, isbn, autor, edicao, editora } = livroData;
         let { categoriaLivro } = livroData;
         if (!titulo || !isbn || !autor || !edicao || !editora || !categoriaLivro) {
@@ -67,7 +69,7 @@ export class LivroService {
         return this.repository.findByISBN(isbn);
     }
 
-    async atualizarLivro(isbnFiltro: any, livro: any): Promise<void> {
+    async atualizarLivro(isbnFiltro: any, livro: any): Promise<any[]> {
         let { categoriaLivro } = livro;
         if (categoriaLivro) {
             categoriaLivro = await this.categoriaLivroService.listarPorFiltro(categoriaLivro.id);
@@ -76,16 +78,17 @@ export class LivroService {
             }
             livro.categoriaLivro = categoriaLivro;
         }
-        return await this.repository.atualizar(isbnFiltro, livro);
+        await this.repository.atualizar(isbnFiltro, livro);
+        return await this.listarLivros({ isbn: isbnFiltro });
     }
 
     async removerLivro(isbn: any): Promise<void> {
-        const serviceEmprestimo = new EmmprestimoService();
-        const resultado = await serviceEmprestimo.listarEmprestimoPorLivro(isbn);
-        let resultado_final = resultado.find(e => e.dataDevolucao === null);
-        if (resultado_final !== undefined) {
-            throw new Error("Livro possui emprestimos em aberto, nao e possivel remover");
+        const service = new EstoqueService();
+        let resultado = await this.repository.filtrarPorCampos({ isbn });
+        if (resultado.length === 0) {
+            throw new Error("Livro nao encontrado na base de dados");
         }
-        this.repository.remover(isbn);
+        await service.validacaoParaDesativarEstoque(resultado[0].id);
+        return;
     }
 }

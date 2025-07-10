@@ -1,4 +1,4 @@
-import { Curso } from "../model/Curso"
+import { Curso } from "../model/Catalogo/Entity/CursoEntity"
 import { executarComandoSQL } from "../database/mysql"
 
 export class CursoRepository {

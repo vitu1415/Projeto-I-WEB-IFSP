@@ -1,4 +1,4 @@
-import { Livro } from "../model/Livro";
+import { Livro } from "../model/Livro/Entity/LivroEntity";
 import { executarComandoSQL } from "../database/mysql";
 
 export class LivroRepository {

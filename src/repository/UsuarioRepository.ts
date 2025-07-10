@@ -1,4 +1,4 @@
-import { Usuario } from "../model/Usuario";
+import { Usuario } from "../model/Usuario/Entity/UsuarioEntity";
 import { executarComandoSQL } from "../database/mysql";
 
 export class UsuarioRepository {
@@ -43,6 +43,17 @@ export class UsuarioRepository {
             return resultado
         } catch (err) {
             console.error("Erro ao listar usuários:", err);
+            return [];
+        }
+    }
+
+    async listarUsuariosSuspensos(): Promise<Usuario[]> {
+        const query = `SELECT * FROM Usuario WHERE ativo = 'SUSPENSO'`;
+        try {
+            const resultado = await executarComandoSQL(query, []);
+            return resultado;
+        } catch (err) {
+            console.error("Erro ao listar usuários suspensos:", err);
             return [];
         }
     }
@@ -126,14 +137,5 @@ export class UsuarioRepository {
             throw new Error("Usuário não encontrado para atualização");
         }
         return;
-    }
-
-    async remover(cpf: string): Promise<void> {
-        const query = `DELETE FROM Usuario WHERE cpf = ?`;
-        const resultado = await executarComandoSQL(query, [cpf]);
-
-        if (resultado.affectedRows === 0) {
-            throw new Error("Usuário não encontrado para remoção");
-        }
     }
 }

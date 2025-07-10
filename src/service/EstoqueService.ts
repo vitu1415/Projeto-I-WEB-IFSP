@@ -1,9 +1,10 @@
-import { CategoriaLivro } from "../model/CategoriaLivro";
-import { Emprestimo } from "../model/Emprestimo";
-import { Estoque } from "../model/Estoque";
-import { Livro } from "../model/Livro";
+import { Estoque } from "../model/Estoque/Entity/EstoqueEntity";
+import { EstoqueResponseDTO } from "../model/Estoque/dto/EstoqueResponseDTO";
+import { EstoqueRequestDTO } from "../model/Estoque/dto/EstoqueRequestDTO";
+import { Livro } from "../model/Livro/Entity/LivroEntity";
+import { LivroResponseDTO } from "../model/Livro/dto/LivroResponseDTO";
 import { EstoqueRepository } from "../repository/EstoqueRepository";
-import { EmmprestimoService } from "./EmprestimoService";
+import { EmprestimoService } from "./EmprestimoService";
 import { LivroService } from "./LivroService";
 
 interface LivroDTO {
@@ -24,7 +25,7 @@ export class EstoqueService {
     private serviceLivro = new LivroService();
 
 
-    async cadastrarEstoque(estoqueData: any): Promise<Estoque[]> {
+    async cadastrarEstoque(estoqueData: any): Promise<EstoqueResponseDTO[]> {
         const { quantidade, quantidade_emprestada, disponivel, livroId } = estoqueData;
 
         if (!livroId) {
@@ -105,7 +106,7 @@ export class EstoqueService {
         return estoqueCompleto;
     }
 
-    async buscarExplarEmEstoque(id: any): Promise<Livro[]> {
+    async buscarExplarEmEstoque(id: any): Promise<LivroResponseDTO[]> {
         let livro: Livro[];
         const resultado = await this.repository.findById(id);
         if (resultado) {
@@ -139,6 +140,20 @@ export class EstoqueService {
         return resultado;
     }
 
+    async atualizarDisponibilidadeManualmente(id: any, estoqueData: Partial<EstoqueRequestDTO>): Promise<Estoque[]> {
+        if (!estoqueData.disponivel) {
+            throw new Error("Disponibilidade deve ser informada");
+        }
+        let resultado: Estoque[] = await this.repository.filtrarPorCampos({id: id});
+        if (resultado !== undefined && resultado.length > 0) {
+            resultado[0].disponivel = estoqueData.disponivel;
+            resultado = await this.repository.atualizar(id, resultado[0]);
+        } else{
+            throw new Error("Nao existe esse codigo no estoque na base de dados");
+        }
+
+        return resultado;
+    }    
     async devolucaoAtualizarDisponibilidade(id: any, estoqueData: Estoque): Promise<Estoque[]> {
         const { quantidade, quantidade_emprestada } = estoqueData;
         let resultado: Estoque[] = await this.repository.filtrarPorCampos(id);
@@ -153,13 +168,33 @@ export class EstoqueService {
         return resultado;
     }
 
-    async deletarEstoque(id: any): Promise<void> {
-        const serviceEmprestimo = new EmmprestimoService();
-        const resultado = await serviceEmprestimo.listarEmprestimoPorEstoque(id);
-        let resultado_final = resultado.find(e => e.estoqueId.quantidade_emprestada != 0);
-        if (resultado_final !== undefined) {
-            throw new Error("Estoque possui emprestimos em aberto, nao e possivel remover");
+    async validacaoParaDesativarEstoque(id: any): Promise<void> {
+        let consulta = await this.repository.filtrarPorCampos({ livroId: id });
+        if (consulta.length === 0) {
+            return;
         }
-        return this.repository.remover(id);
+        if (consulta[0].quantidade_emprestada > 0) {
+            throw new Error("Estoque possui emprestimos em aberto, nao e possivel remover");
+        } 
+        consulta[0].disponivel = false;
+        consulta[0].quantidade = 0;
+        consulta[0].quantidade_emprestada = 0;
+        await this.repository.atualizar(id, consulta[0]);
+        return;
+    }
+
+    async deletarEstoque(id: any): Promise<void> {
+        let consulta = await this.repository.filtrarPorCampos({ id: id });
+        if (consulta.length === 0) {
+            throw new Error("Estoque nao encontrado na base de dados");
+        }
+        if (consulta[0].quantidade_emprestada > 0) {
+            throw new Error("Estoque possui emprestimos em aberto, nao e possivel remover");
+        } 
+        consulta[0].disponivel = false;
+        consulta[0].quantidade = 0;
+        consulta[0].quantidade_emprestada = 0;
+        await this.repository.atualizar(id, consulta[0]);
+        return;
     }
 }

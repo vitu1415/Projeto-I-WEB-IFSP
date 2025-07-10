@@ -1,17 +1,18 @@
-import { CategoriaStatus } from "../model/CategoriaStatusEnum";
-import { Emprestimo } from "../model/Emprestimo";
+import { CategoriaStatus } from "../model/enum/CategoriaStatusEnum";
+import { Emprestimo } from "../model/Emprestimo/Entity/EmprestimoEntity";
+import { EmprestimoResponseDTO } from "../model/Emprestimo/dto/EmprestimoResponseDTO";
 import { EmprestimoRepository } from "../repository/EmprestimoRepository";
 import { EstoqueService } from "./EstoqueService";
-import { FormatadorDate } from "./FormatadorDate";
+import { FormatadorDate } from "../Utils/FormatadorDate";
 import { UsuarioService } from "./UsuarioService";
 
-export class EmmprestimoService {
+export class EmprestimoService {
     private repository = EmprestimoRepository.getInstance();
     private fomatadorData = new FormatadorDate();
     private serviceUsuario = new UsuarioService();
     private serviceEstoque = new EstoqueService();
 
-    async cadastrarEmprestimo(emprestimoData: any): Promise<Emprestimo[]> {
+    async cadastrarEmprestimo(emprestimoData: any): Promise<EmprestimoResponseDTO[]> {
         const { usuarioId, estoqueId } = emprestimoData;
         let { dataEmprestimo, dataDevolucao, dataEntrega, diasAtraso, suspensasaoAte } = emprestimoData;
 
@@ -44,6 +45,9 @@ export class EmmprestimoService {
         } else {
             throw new Error("Estoque nao encontrado na base de dados");
         }
+        dataDevolucao = null;
+        diasAtraso = 0;
+        suspensasaoAte = null;
         const emprestimo = new Emprestimo(validadorUsuarioExistente[0], validadorEstoqueExistente[0], dataEmprestimo, dataDevolucao, dataEntrega, diasAtraso, suspensasaoAte);
         const resultado: any = await this.repository.cadastrar(emprestimo);
         return await this.listarEmprestimosPorFiltro({id: resultado.insertId});
@@ -67,6 +71,7 @@ export class EmmprestimoService {
 
     async cadastrarEntrega(categoriaUsuarioNome: string, cursoNome: string, livroCategoria: string, dataEmprestimo: Date, id: number): Promise<Date> {
         let quantidadeDeEmprestimo: Emprestimo[] = await this.repository.buscarPorUsuario(id);
+        quantidadeDeEmprestimo = quantidadeDeEmprestimo.filter(e => e.dataDevolucao === null);
         if (categoriaUsuarioNome === "Professor") {
             if (quantidadeDeEmprestimo.length < 5) {
                 return this.fomatadorData.adicionarDias(dataEmprestimo, this.calcularPrazo(cursoNome, livroCategoria, categoriaUsuarioNome));
@@ -91,7 +96,7 @@ export class EmmprestimoService {
                 const estoque = await this.serviceEstoque.listarPorFiltro({ id: e.estoqueId });
                 return {
                     id: e.id,
-                    usuarioId: {
+                    usuario: {
                         id: usuario[0].id,
                         nome: usuario[0].nome,
                         cpf: usuario[0].cpf,
@@ -105,7 +110,7 @@ export class EmmprestimoService {
                             nome: usuario[0].curso.nome
                         }
                     },
-                    estoqueId: {
+                    estoque: {
                         id: estoque[0].id,
                         livroId: {
                             id: estoque[0].livroId.id,
@@ -134,13 +139,13 @@ export class EmmprestimoService {
         return emprestimosCompletos;
     }
 
-    async listarTodosEmprestimos(): Promise<any[]> {
+    async listarTodosEmprestimos(): Promise<EmprestimoResponseDTO[]> {
         const resultado = await this.repository.listar();
         const emprestimosCompletos = await this.listarEmprestimosCompletos(resultado);
         return emprestimosCompletos;
     }
 
-    async listarEmprestimosPorFiltro(filtro: any): Promise<Emprestimo[]> {
+    async listarEmprestimosPorFiltro(filtro: any): Promise<EmprestimoResponseDTO[]> {
         const resultado: Emprestimo[] = await this.repository.filtrarPorCamposEstoque(filtro);
         if (resultado.length === 0) {
             throw new Error("Nenhum emprestimo encontrado com os filtros fornecidos");
@@ -192,17 +197,17 @@ export class EmmprestimoService {
     async devolucaoEmprestimo(id: any): Promise<Emprestimo> {
         let resultado: any = await this.repository.devolucaoEmprestimo(id);
         resultado = await this.listarEmprestimosPorFiltro({ id: resultado.id });
-        await this.serviceEstoque.devolucaoAtualizarDisponibilidade(resultado[0].estoqueId.id, resultado[0].estoqueId);
-        const diasDaEntrega = this.fomatadorData.diferencaEmDias(resultado[0].dataEntrega, resultado[0].dataDevolucao);
-        this.vaidarDataDeEntregaEAtrasos(id, resultado[0], diasDaEntrega,
-            resultado[0].usuarioId.categoriaUsuario.nome, resultado[0].usuarioId.curso.nome,
-            resultado[0].estoqueId.livroId.categoriaLivro.nome);
+        await this.serviceEstoque.devolucaoAtualizarDisponibilidade(resultado[0].estoque.id, resultado[0].estoque);
+        const diasDaEntrega = await this.fomatadorData.diferencaEmDias(resultado[0].dataEntrega, resultado[0].dataDevolucao);
+        await this.vaidarDataDeEntregaEAtrasos(id, resultado[0], diasDaEntrega,
+            resultado[0].usuario.categoriaUsuario.nome, resultado[0].usuario.curso.nome,
+            resultado[0].estoque.livroId.categoriaLivro.nome);
         resultado = await this.repository.devolucaoEmprestimo(id);
         return resultado;
     }
 
     async verificadorDeAtraso() {
-        const emprestimos = await this.repository.listar();
+        const emprestimos = await this.repository.listarEmprestimosAtrasados();
         const hoje = new Date();
 
         const atrasosGravesPorUsuario: Record<string, number> = {};
@@ -240,8 +245,8 @@ export class EmmprestimoService {
     }
 
 
-    async listarEmprestimoPorUsuario(cpf: string): Promise<Emprestimo[]> {
-        const resultado: Emprestimo[] = await this.repository.buscarPorUsuario(cpf);
+    async listarEmprestimoPorUsuario(id: number): Promise<Emprestimo[]> {
+        const resultado: Emprestimo[] = await this.repository.buscarPorUsuario(id);
         return resultado;
     }
 

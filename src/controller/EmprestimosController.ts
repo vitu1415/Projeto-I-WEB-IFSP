@@ -1,38 +1,69 @@
-import { Request, Response } from "express";
-import { EmmprestimoService } from "../service/EmprestimoService";
+import {
+    Body,
+    Controller,
+    Get,
+    Path,
+    Post,
+    Put,
+    Res,
+    Route,
+    Tags,
+    TsoaResponse,
+} from "tsoa";
+import { EmprestimoRequestDTO } from "../model/Emprestimo/dto/EmprestimoRequestDTO";
+import { EmprestimoResponseDTO } from "../model/Emprestimo/dto/EmprestimoResponseDTO";
+import { EmprestimoService } from "../service/EmprestimoService";
+import { BasicResponseDto } from "../model/BasicResponseDTO";
 
-const emprestimosService = new EmmprestimoService();
-//validar: CPF usuairo e codigo exemplar(valdiar se sao reais) - falta
-//validar regras de negocio
-export async function cadastrarEmprestimos(req: Request, res: Response) {
-    try{
-        const novoEmprestimo = await emprestimosService.cadastrarEmprestimo(req.body);
-        res.status(201).json(
-            {
-                message: "Emprestimo cadastrado com sucesso",
-                emprestimo: novoEmprestimo
-            }
-        );
-    } catch (error: any) {
-        res.status(400).json({ message: error.message });
-    }
-}
-//mostrar ativos e historico
-export async function listarEmprestimos(req: Request, res: Response) {
-    try{
-        const emprestimos = await emprestimosService.listarTodosEmprestimos();
-        res.status(200).json(emprestimos);
-    } catch (error: any) {
-        res.status(500).json({ message: error.message });
+@Route("emprestimos")
+@Tags("Emprestimos")
+export class EmprestimoController extends Controller {
+    private emprestimoService = new EmprestimoService();
+
+    @Post()
+    public async cadastrarEmprestimo(
+        @Body() dto: EmprestimoRequestDTO,
+        @Res() fail: TsoaResponse<400, BasicResponseDto>,
+        @Res() success: TsoaResponse<201, BasicResponseDto<EmprestimoResponseDTO[]>>
+    ): Promise<void> {
+        try {
+            const novoEmprestimo = await this.emprestimoService.cadastrarEmprestimo(dto);
+            return success(
+                201,
+                new BasicResponseDto("Empréstimo cadastrado com sucesso", novoEmprestimo)
+            );
+        } catch (error: any) {
+            return fail(400, new BasicResponseDto(error.message));
+        }
     }
 
-}
-export async function registrarDevolucao(req: Request, res: Response) {
-    try{
-        const id = req.params.id;
-        const emprestimos = await emprestimosService.devolucaoEmprestimo(id);
-        res.status(200).json(emprestimos);
-    } catch (error: any) {
-        res.status(404).json({ message: error.message });
+    @Get()
+    public async listarEmprestimos(
+        @Res() fail: TsoaResponse<500, BasicResponseDto>,
+        @Res() success: TsoaResponse<200, BasicResponseDto<EmprestimoResponseDTO[]>>
+    ): Promise<void> {
+        try {
+            const emprestimos = await this.emprestimoService.listarTodosEmprestimos();
+            return success(200, new BasicResponseDto("Empréstimos listados com sucesso", emprestimos));
+        } catch (error: any) {
+            return fail(500, new BasicResponseDto(error.message));
+        }
+    }
+
+    @Put("{id}/devolucao")
+    public async registrarDevolucao(
+        @Path() id: string,
+        @Res() fail: TsoaResponse<404, BasicResponseDto>,
+        @Res() success: TsoaResponse<200, BasicResponseDto<EmprestimoResponseDTO>>
+    ): Promise<void> {
+        try {
+            await this.emprestimoService.devolucaoEmprestimo(id);
+            return success(
+                200,
+                new BasicResponseDto("Devolução registrada com sucesso")
+            );
+        } catch (error: any) {
+            return fail(404, new BasicResponseDto(error.message));
+        }
     }
 }
