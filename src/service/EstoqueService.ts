@@ -146,6 +146,7 @@ export class EstoqueService {
         }
         let resultado: Estoque[] = await this.repository.filtrarPorCampos({id: id});
         if (resultado !== undefined && resultado.length > 0) {
+            resultado[0].disponivel = estoqueData.disponivel;
             resultado = await this.repository.atualizar(id, resultado[0]);
         } else{
             throw new Error("Nao existe esse codigo no estoque na base de dados");

@@ -86,7 +86,7 @@ export class UsuarioService {
         return this.repository.findByCPF(cpf);
     }
 
-    async atualizarUsuario(cpf: any, usuarioData: any): Promise<void> {
+    async atualizarUsuario(cpf: any, usuarioData: any): Promise<any[]> {
         let { ativo, categoriaLivro, curso } = usuarioData;
         if (categoriaLivro) {
             categoriaLivro = await this.categoriaUsuarioService.listarPorFiltro(categoriaLivro.id);
@@ -109,7 +109,8 @@ export class UsuarioService {
             }
             usuarioData.curso = curso;
         }
-        return await this.repository.atualizar(cpf, usuarioData);
+        await this.repository.atualizar(cpf, usuarioData);
+        return await this.listarUsuarios({ cpf });
     }
 
     async deletarUsuario(cpf: any): Promise<void> {

@@ -74,8 +74,8 @@ export class LivroController extends Controller {
     @Res() success: TsoaResponse<200, BasicResponseDto<LivroResponseDTO>>
   ): Promise<void> {
     try {
-      await this.livroService.atualizarLivro(isbn, dto);
-      return success(200, new BasicResponseDto("Livro atualizado com sucesso"));
+      const resultado = await this.livroService.atualizarLivro(isbn, dto);
+      return success(200, new BasicResponseDto("Livro atualizado com sucesso"), resultado);
     } catch (error: any) {
       return fail(404, new BasicResponseDto(error.message));
     }

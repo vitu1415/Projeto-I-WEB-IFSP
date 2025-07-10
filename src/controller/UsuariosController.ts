@@ -74,8 +74,8 @@ export class UsuarioController extends Controller {
         @Res() success: TsoaResponse<200, BasicResponseDto<UsuarioResponseDTO>>
     ): Promise<void> {
         try {
-            await this.usuarioService.atualizarUsuario(cpf, dto);
-            return success(200, new BasicResponseDto("Usuário atualizado com sucesso"));
+            const resultado = await this.usuarioService.atualizarUsuario(cpf, dto);
+            return success(200, new BasicResponseDto("Usuário atualizado com sucesso"), resultado);
         } catch (error: any) {
             return fail(404, new BasicResponseDto(error.message));
         }

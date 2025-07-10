@@ -69,7 +69,7 @@ export class LivroService {
         return this.repository.findByISBN(isbn);
     }
 
-    async atualizarLivro(isbnFiltro: any, livro: any): Promise<void> {
+    async atualizarLivro(isbnFiltro: any, livro: any): Promise<any[]> {
         let { categoriaLivro } = livro;
         if (categoriaLivro) {
             categoriaLivro = await this.categoriaLivroService.listarPorFiltro(categoriaLivro.id);
@@ -78,7 +78,8 @@ export class LivroService {
             }
             livro.categoriaLivro = categoriaLivro;
         }
-        return await this.repository.atualizar(isbnFiltro, livro);
+        await this.repository.atualizar(isbnFiltro, livro);
+        return await this.listarLivros({ isbn: isbnFiltro });
     }
 
     async removerLivro(isbn: any): Promise<void> {
