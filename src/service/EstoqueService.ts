@@ -1,7 +1,7 @@
-import { CategoriaLivro } from "../model/CategoriaLivro";
-import { Emprestimo } from "../model/Emprestimo";
-import { Estoque } from "../model/Estoque";
-import { Livro } from "../model/Livro";
+import { CategoriaLivro } from "../model/Catalogo/Entity/CategoriaLivroEntity";
+import { Emprestimo } from "../model/Emprestimo/Entity/EmprestimoEntity";
+import { Estoque } from "../model/Entity/EstoqueEntity";
+import { Livro } from "../model/Entity/LivroEntity";
 import { EstoqueRepository } from "../repository/EstoqueRepository";
 import { EmmprestimoService } from "./EmprestimoService";
 import { LivroService } from "./LivroService";

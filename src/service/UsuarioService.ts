@@ -1,5 +1,5 @@
-import { CategoriaStatus } from "../model/CategoriaStatusEnum";
-import { Usuario } from "../model/Usuario";
+import { CategoriaStatus } from "../model/enum/CategoriaStatusEnum";
+import { Usuario } from "../model/Entity/UsuarioEntity";
 import { UsuarioRepository } from "../repository/UsuarioRepository";
 import { CategoriaUsuarioService } from "./CategoriaUsuarioService";
 import { CursoService } from "./CursoService";

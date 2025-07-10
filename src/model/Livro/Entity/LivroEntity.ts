@@ -1,4 +1,4 @@
-import { CategoriaLivro } from "./CategoriaLivro";
+import { CategoriaLivro } from "../Catalogo/Entity/CategoriaLivroEntity";
 
 export class Livro{
     id: number;

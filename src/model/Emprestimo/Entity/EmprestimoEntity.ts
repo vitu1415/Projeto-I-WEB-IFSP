@@ -1,5 +1,5 @@
-import { Estoque } from "./Estoque";
-import { Usuario } from "./Usuario";
+import { Estoque } from "../../Estoque/Entity/EstoqueEntity";
+import { Usuario } from "../../Usuario/Entity/UsuarioEntity";
 
 export class Emprestimo{
     id: number;

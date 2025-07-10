@@ -1,5 +1,5 @@
-import { CategoriaStatus } from "../model/CategoriaStatusEnum";
-import { Emprestimo } from "../model/Emprestimo";
+import { CategoriaStatus } from "../model/enum/CategoriaStatusEnum";
+import { Emprestimo } from "../model/Emprestimo/Entity/EmprestimoEntity";
 import { EmprestimoRepository } from "../repository/EmprestimoRepository";
 import { EstoqueService } from "./EstoqueService";
 import { FormatadorDate } from "../Utils/FormatadorDate";

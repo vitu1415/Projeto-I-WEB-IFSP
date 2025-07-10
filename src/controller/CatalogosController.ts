@@ -1,37 +1,67 @@
-import { Request, Response } from "express";
+import {
+  Controller,
+  Get,
+  Route,
+  Tags,
+  Res,
+  TsoaResponse
+} from "tsoa";
+
 import { CategoriaUsuarioService } from "../service/CategoriaUsuarioService";
 import { CategoriaLivroService } from "../service/CategoriaLivroService";
 import { CursoService } from "../service/CursoService";
 
-export async function listarCategoriaDeUsuario(req: Request, res: Response) {
-    try {
-        const service = new CategoriaUsuarioService();
-        const categorias = await service.listar();
-        res.status(200).json(categorias);
-    } catch (error) {
-        console.error("Erro ao buscar categorias de Usuarios:", error);
-        res.status(500).json({ message: "Erro interno do servidor" });
-    }
-}
+import { CategoriaUsuarioDTO } from "../model/Catalogo/dto/CategoriaUsuarioDTO";
+import { CategoriaLivroDTO } from "../model/Catalogo/dto/CategoriaLivroDTO";
+import { CategoriaCursoDTO } from "../model/Catalogo/dto/CategoriaCursoDTO";
+import { BasicResponseDto } from "../model/BasicResponseDTO";
 
-export async function listarCategoriaLivro(req: Request, res: Response) {
-    try {
-        const service = new CategoriaLivroService();
-        const categorias = await service.listar();
-        res.status(200).json(categorias);
-    } catch (error) {
-        console.error("Erro ao buscar categorias de Livros:", error);
-        res.status(500).json({ message: "Erro interno do servidor" });
-    }
-}
+@Route("categorias")
+@Tags("Categorias")
+export class CategoriaController extends Controller {
 
-export async function listarTiposDeCursos(req: Request, res: Response) {
+  @Get("/usuarios")
+  public async listarCategoriaDeUsuario(
+    @Res() fail: TsoaResponse<500, BasicResponseDto>,
+    @Res() success: TsoaResponse<200, BasicResponseDto<CategoriaUsuarioDTO[]>>
+  ): Promise<void> {
     try {
-        const service = new CursoService();
-        const categorias = await service.listar();
-        res.status(200).json(categorias);
-    } catch (error) {
-        console.error("Erro ao buscar categorias de Cursos:", error);
-        res.status(500).json({ message: "Erro interno do servidor" });
+      const service = new CategoriaUsuarioService();
+      const categorias = await service.listar();
+      const dtos: CategoriaUsuarioDTO[] = categorias.map(c => ({ id: c.id, nome: c.nome }));
+      return success(200, new BasicResponseDto("Categorias de usuário listadas com sucesso", dtos));
+    } catch (error: any) {
+      return fail(500, new BasicResponseDto("Erro ao buscar categorias de usuários", error.message));
     }
+  }
+
+  @Get("/livros")
+  public async listarCategoriaLivro(
+    @Res() fail: TsoaResponse<500, BasicResponseDto>,
+    @Res() success: TsoaResponse<200, BasicResponseDto<CategoriaLivroDTO[]>>
+  ): Promise<void> {
+    try {
+      const service = new CategoriaLivroService();
+      const categorias = await service.listar();
+      const dtos: CategoriaLivroDTO[] = categorias.map(c => ({ id: c.id, nome: c.nome }));
+      return success(200, new BasicResponseDto("Categorias de livros listadas com sucesso", dtos));
+    } catch (error: any) {
+      return fail(500, new BasicResponseDto("Erro ao buscar categorias de livros", error.message));
+    }
+  }
+
+  @Get("/cursos")
+  public async listarTiposDeCursos(
+    @Res() fail: TsoaResponse<500, BasicResponseDto>,
+    @Res() success: TsoaResponse<200, BasicResponseDto<CategoriaCursoDTO[]>>
+  ): Promise<void> {
+    try {
+      const service = new CursoService();
+      const cursos = await service.listar();
+      const dtos: CategoriaCursoDTO[] = cursos.map(c => ({ id: c.id, nome: c.nome }));
+      return success(200, new BasicResponseDto("Tipos de curso listados com sucesso", dtos));
+    } catch (error: any) {
+      return fail(500, new BasicResponseDto("Erro ao buscar tipos de curso", error.message));
+    }
+  }
 }

@@ -1,5 +1,4 @@
-import { Livro } from "./Livro";
-
+import { Livro } from "../../Livro/Entity/LivroEntity";
 export class Estoque {
     id: number;
     livroId: Livro;
