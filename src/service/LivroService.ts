@@ -2,7 +2,7 @@ import { Livro } from "../model/Livro/Entity/LivroEntity";
 import { LivroResponseDTO } from "../model/Livro/dto/LivroResponseDTO";
 import { LivroRepository } from "../repository/LivroRepository";
 import { CategoriaLivroService } from "./CategoriaLivroService";
-import { EmmprestimoService } from "./EmprestimoService";
+import { EmprestimoService } from "./EmprestimoService";
 
 export class LivroService {
     private repository = LivroRepository.getInstance()
@@ -81,7 +81,7 @@ export class LivroService {
     }
 
     async removerLivro(isbn: any): Promise<void> {
-        const serviceEmprestimo = new EmmprestimoService();
+        const serviceEmprestimo = new EmprestimoService();
         const resultado = await serviceEmprestimo.listarEmprestimoPorLivro(isbn);
         let resultado_final = resultado.find(e => e.dataDevolucao === null);
         if (resultado_final !== undefined) {

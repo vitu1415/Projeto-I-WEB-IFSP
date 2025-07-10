@@ -1,17 +1,18 @@
 import { CategoriaStatus } from "../model/enum/CategoriaStatusEnum";
 import { Emprestimo } from "../model/Emprestimo/Entity/EmprestimoEntity";
+import { EmprestimoResponseDTO } from "../model/Emprestimo/dto/EmprestimoResponseDTO";
 import { EmprestimoRepository } from "../repository/EmprestimoRepository";
 import { EstoqueService } from "./EstoqueService";
 import { FormatadorDate } from "../Utils/FormatadorDate";
 import { UsuarioService } from "./UsuarioService";
 
-export class EmmprestimoService {
+export class EmprestimoService {
     private repository = EmprestimoRepository.getInstance();
     private fomatadorData = new FormatadorDate();
     private serviceUsuario = new UsuarioService();
     private serviceEstoque = new EstoqueService();
 
-    async cadastrarEmprestimo(emprestimoData: any): Promise<Emprestimo[]> {
+    async cadastrarEmprestimo(emprestimoData: any): Promise<EmprestimoResponseDTO[]> {
         const { usuarioId, estoqueId } = emprestimoData;
         let { dataEmprestimo, dataDevolucao, dataEntrega, diasAtraso, suspensasaoAte } = emprestimoData;
 
@@ -44,6 +45,9 @@ export class EmmprestimoService {
         } else {
             throw new Error("Estoque nao encontrado na base de dados");
         }
+        dataDevolucao = null;
+        diasAtraso = 0;
+        suspensasaoAte = null;
         const emprestimo = new Emprestimo(validadorUsuarioExistente[0], validadorEstoqueExistente[0], dataEmprestimo, dataDevolucao, dataEntrega, diasAtraso, suspensasaoAte);
         const resultado: any = await this.repository.cadastrar(emprestimo);
         return await this.listarEmprestimosPorFiltro({id: resultado.insertId});
@@ -91,7 +95,7 @@ export class EmmprestimoService {
                 const estoque = await this.serviceEstoque.listarPorFiltro({ id: e.estoqueId });
                 return {
                     id: e.id,
-                    usuarioId: {
+                    usuario: {
                         id: usuario[0].id,
                         nome: usuario[0].nome,
                         cpf: usuario[0].cpf,
@@ -105,7 +109,7 @@ export class EmmprestimoService {
                             nome: usuario[0].curso.nome
                         }
                     },
-                    estoqueId: {
+                    estoque: {
                         id: estoque[0].id,
                         livroId: {
                             id: estoque[0].livroId.id,
@@ -134,13 +138,13 @@ export class EmmprestimoService {
         return emprestimosCompletos;
     }
 
-    async listarTodosEmprestimos(): Promise<any[]> {
+    async listarTodosEmprestimos(): Promise<EmprestimoResponseDTO[]> {
         const resultado = await this.repository.listar();
         const emprestimosCompletos = await this.listarEmprestimosCompletos(resultado);
         return emprestimosCompletos;
     }
 
-    async listarEmprestimosPorFiltro(filtro: any): Promise<Emprestimo[]> {
+    async listarEmprestimosPorFiltro(filtro: any): Promise<EmprestimoResponseDTO[]> {
         const resultado: Emprestimo[] = await this.repository.filtrarPorCamposEstoque(filtro);
         if (resultado.length === 0) {
             throw new Error("Nenhum emprestimo encontrado com os filtros fornecidos");

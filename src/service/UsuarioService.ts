@@ -4,7 +4,7 @@ import { UsuarioResponseDTO } from "../model/Usuario/dto/UsuarioResponseDTO";
 import { UsuarioRepository } from "../repository/UsuarioRepository";
 import { CategoriaUsuarioService } from "./CategoriaUsuarioService";
 import { CursoService } from "./CursoService";
-import { EmmprestimoService } from "./EmprestimoService";
+import { EmprestimoService } from "./EmprestimoService";
 import { FormatadorDate } from "../Utils/FormatadorDate";
 
 export class UsuarioService {
@@ -136,7 +136,7 @@ export class UsuarioService {
     }
 
     async deletarUsuario(cpf: any): Promise<void> {
-        const serviceEmprestimo = new EmmprestimoService();
+        const serviceEmprestimo = new EmprestimoService();
         const resultado = await serviceEmprestimo.listarEmprestimoPorUsuario(cpf);
         let resultado_final = resultado.find(e => e.dataDevolucao === null);
         if (resultado_final !== undefined) {
@@ -146,7 +146,7 @@ export class UsuarioService {
     }
 
     async reativarUsuariosSuspensos() {
-        const serviceEmprestimo = new EmmprestimoService();
+        const serviceEmprestimo = new EmprestimoService();
         const usuarios = await this.repository.listarUsuariosSuspensos();
 
         const hoje = new Date();

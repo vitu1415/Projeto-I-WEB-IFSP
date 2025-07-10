@@ -4,7 +4,7 @@ import { EstoqueRequestDTO } from "../model/Estoque/dto/EstoqueRequestDTO";
 import { Livro } from "../model/Livro/Entity/LivroEntity";
 import { LivroResponseDTO } from "../model/Livro/dto/LivroResponseDTO";
 import { EstoqueRepository } from "../repository/EstoqueRepository";
-import { EmmprestimoService } from "./EmprestimoService";
+import { EmprestimoService } from "./EmprestimoService";
 import { LivroService } from "./LivroService";
 
 interface LivroDTO {
@@ -168,7 +168,7 @@ export class EstoqueService {
     }
 
     async deletarEstoque(id: any): Promise<void> {
-        const serviceEmprestimo = new EmmprestimoService();
+        const serviceEmprestimo = new EmprestimoService();
         const resultado = await serviceEmprestimo.listarEmprestimoPorEstoque(id);
         let resultado_final = resultado.find(e => e.estoqueId.quantidade_emprestada != 0);
         if (resultado_final !== undefined) {
