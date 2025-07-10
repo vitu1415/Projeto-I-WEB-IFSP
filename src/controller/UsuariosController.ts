@@ -18,8 +18,8 @@ import { UsuarioRequestDTO } from "../model/Usuario/dto/UsuarioRequestDTO";
 import { UsuarioResponseDTO } from "../model/Usuario/dto/UsuarioResponseDTO";
 import { BasicResponseDto } from "../model/BasicResponseDTO";
 
-@Route("usuario")
-@Tags("Usuario")
+@Route("usuarios")
+@Tags("Usuarios")
 export class UsuarioController extends Controller {
     private usuarioService = new UsuarioService();
 

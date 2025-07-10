@@ -16,11 +16,11 @@ import { CategoriaLivroDTO } from "../model/Catalogo/dto/CategoriaLivroDTO";
 import { CursoDTO } from "../model/Catalogo/dto/CursoDTO";
 import { BasicResponseDto } from "../model/BasicResponseDTO";
 
-@Route("categorias")
-@Tags("Categorias")
+@Route("catalogos")
+@Tags("catalogos")
 export class CategoriaController extends Controller {
 
-  @Get("/usuarios")
+  @Get("/categorias-usuario")
   public async listarCategoriaDeUsuario(
     @Res() fail: TsoaResponse<500, BasicResponseDto>,
     @Res() success: TsoaResponse<200, BasicResponseDto<CategoriaUsuarioDTO[]>>
@@ -35,7 +35,7 @@ export class CategoriaController extends Controller {
     }
   }
 
-  @Get("/livros")
+  @Get("/categorias-livro")
   public async listarCategoriaLivro(
     @Res() fail: TsoaResponse<500, BasicResponseDto>,
     @Res() success: TsoaResponse<200, BasicResponseDto<CategoriaLivroDTO[]>>

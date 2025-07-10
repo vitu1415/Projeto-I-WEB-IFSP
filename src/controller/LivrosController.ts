@@ -18,8 +18,8 @@ import { LivroRequestDTO } from "../model/Livro/dto/LivroRequestDTO";
 import { LivroResponseDTO } from "../model/Livro/dto/LivroResponseDTO";
 import { BasicResponseDto } from "../model/BasicResponseDTO";
 
-@Route("livro")
-@Tags("Livro")
+@Route("livros")
+@Tags("Livros")
 export class LivroController extends Controller {
   private livroService = new LivroService();
 

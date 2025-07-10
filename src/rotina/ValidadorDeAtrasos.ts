@@ -1,8 +1,8 @@
-import { EmmprestimoService } from "../service/EmprestimoService";
+import { EmprestimoService } from "../service/EmprestimoService";
 import { UsuarioService } from "../service/UsuarioService";
 
 export function iniciarVerificacaoDeAtrasos() {
-    const emprestimoService = new EmmprestimoService();
+    const emprestimoService = new EmprestimoService();
     const usuarioService = new UsuarioService();
     const intervaloUmaHora = 60 * 60 * 1000;
 
