@@ -69,7 +69,7 @@ export class LivroController extends Controller {
   @Put("{isbn}")
   public async atualizarLivro(
     @Path() isbn: string,
-    @Body() dto: LivroRequestDTO,
+    @Body() dto: Partial<LivroRequestDTO>,
     @Res() fail: TsoaResponse<404, BasicResponseDto>,
     @Res() success: TsoaResponse<200, BasicResponseDto<LivroResponseDTO>>
   ): Promise<void> {

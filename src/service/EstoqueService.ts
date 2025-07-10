@@ -1,7 +1,8 @@
-import { CategoriaLivro } from "../model/Catalogo/Entity/CategoriaLivroEntity";
-import { Emprestimo } from "../model/Emprestimo/Entity/EmprestimoEntity";
-import { Estoque } from "../model/Entity/EstoqueEntity";
-import { Livro } from "../model/Entity/LivroEntity";
+import { Estoque } from "../model/Estoque/Entity/EstoqueEntity";
+import { EstoqueResponseDTO } from "../model/Estoque/dto/EstoqueResponseDTO";
+import { EstoqueRequestDTO } from "../model/Estoque/dto/EstoqueRequestDTO";
+import { Livro } from "../model/Livro/Entity/LivroEntity";
+import { LivroResponseDTO } from "../model/Livro/dto/LivroResponseDTO";
 import { EstoqueRepository } from "../repository/EstoqueRepository";
 import { EmmprestimoService } from "./EmprestimoService";
 import { LivroService } from "./LivroService";
@@ -24,7 +25,7 @@ export class EstoqueService {
     private serviceLivro = new LivroService();
 
 
-    async cadastrarEstoque(estoqueData: any): Promise<Estoque[]> {
+    async cadastrarEstoque(estoqueData: any): Promise<EstoqueResponseDTO[]> {
         const { quantidade, quantidade_emprestada, disponivel, livroId } = estoqueData;
 
         if (!livroId) {
@@ -105,7 +106,7 @@ export class EstoqueService {
         return estoqueCompleto;
     }
 
-    async buscarExplarEmEstoque(id: any): Promise<Livro[]> {
+    async buscarExplarEmEstoque(id: any): Promise<LivroResponseDTO[]> {
         let livro: Livro[];
         const resultado = await this.repository.findById(id);
         if (resultado) {
@@ -139,6 +140,19 @@ export class EstoqueService {
         return resultado;
     }
 
+    async atualizarDisponibilidadeManualmente(id: any, estoqueData: Partial<EstoqueRequestDTO>): Promise<Estoque[]> {
+        if (!estoqueData.disponivel) {
+            throw new Error("Disponibilidade deve ser informada");
+        }
+        let resultado: Estoque[] = await this.repository.filtrarPorCampos({id: id});
+        if (resultado !== undefined && resultado.length > 0) {
+            resultado = await this.repository.atualizar(id, resultado[0]);
+        } else{
+            throw new Error("Nao existe esse codigo no estoque na base de dados");
+        }
+
+        return resultado;
+    }    
     async devolucaoAtualizarDisponibilidade(id: any, estoqueData: Estoque): Promise<Estoque[]> {
         const { quantidade, quantidade_emprestada } = estoqueData;
         let resultado: Estoque[] = await this.repository.filtrarPorCampos(id);

@@ -69,7 +69,7 @@ export class UsuarioController extends Controller {
     @Put("{cpf}")
     public async atualizarUsuario(
         @Path() cpf: string,
-        @Body() dto: UsuarioRequestDTO,
+        @Body() dto: Partial<UsuarioRequestDTO>,
         @Res() fail: TsoaResponse<404, BasicResponseDto>,
         @Res() success: TsoaResponse<200, BasicResponseDto<UsuarioResponseDTO>>
     ): Promise<void> {
