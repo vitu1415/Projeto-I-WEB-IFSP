@@ -14,25 +14,7 @@ export class EstoqueRepository {
         return this.instance
     }
 
-    // private async criarTabela() {
-    //     const query = `
-    //             CREATE TABLE IF NOT EXISTS Estoque (
-    //                 id INT AUTO_INCREMENT PRIMARY KEY,
-    //                 livroId INT NOT NULL,
-    //                 quantidade INT NOT NULL,
-    //                 quantidade_emprestada INT NOT NULL DEFAULT 0,
-    //                 disponivel BOOLEAN NOT NULL DEFAULT TRUE,
-    //                 FOREIGN KEY (livroId) REFERENCES Livro(id)
-    //             )
-    //         `;
-    //     try {
-    //         await executarComandoSQL(query, []);
-    //         console.log("Tabela Usuario verificada/criada com sucesso.");
-    //     } catch (err) {
-    //         console.error("Erro ao criar tabela Usuario:", err);
-    //     }
-    // }
-
+    
     async listar(): Promise<Estoque[]> {
         const query = `SELECT * FROM Estoque`;
         try {

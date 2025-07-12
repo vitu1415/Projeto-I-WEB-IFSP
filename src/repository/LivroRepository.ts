@@ -14,27 +14,6 @@ export class LivroRepository {
         return this.instance;
     }
 
-    // private async criarTabela() {
-    //     const query = `
-    //             CREATE TABLE IF NOT EXISTS Livro (
-    //                 id INT AUTO_INCREMENT PRIMARY KEY,
-    //                 titulo VARCHAR(255) NOT NULL,
-    //                 autor VARCHAR(255) NOT NULL,
-    //                 editora VARCHAR(255) NOT NULL,
-    //                 edicao VARCHAR(50) NOT NULL,
-    //                 isbn VARCHAR(20) NOT NULL UNIQUE,
-    //                 categoriaLivro INT NOT NULL,
-    //                 FOREIGN KEY (categoriaLivro) REFERENCES CategoriaLivro(id)
-    //             )
-    //         `;
-    //     try {
-    //         await executarComandoSQL(query, []);
-    //         console.log("Tabela Usuario verificada/criada com sucesso.");
-    //     } catch (err) {
-    //         console.error("Erro ao criar tabela Usuario:", err);
-    //     }
-    // }
-
     async listar(): Promise<Livro[]> {
         const query = `SELECT * FROM Livro`;
         try {

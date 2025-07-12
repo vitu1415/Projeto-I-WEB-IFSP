@@ -117,6 +117,7 @@ export async function createTable() {
                 dataEntrega DATETIME,
                 diasAtraso INT DEFAULT 0,
                 suspensaoAte DATETIME,
+                data_ultima_validacao DATETIME NULL,
                 FOREIGN KEY (usuarioId) REFERENCES Usuario(id),
                 FOREIGN KEY (estoqueId) REFERENCES Estoque(id)
             )
