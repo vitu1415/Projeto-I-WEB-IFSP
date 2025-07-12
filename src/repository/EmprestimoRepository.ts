@@ -1,40 +1,15 @@
 import { Emprestimo } from "../model/Emprestimo/Entity/EmprestimoEntity"
 import { executarComandoSQL } from "../database/mysql";
 
-export class EmprestimoRepository{
+export class EmprestimoRepository {
     private static instance: EmprestimoRepository
-    private constructor() { 
-        this.criarTabela()
-    }
+    private constructor() { }
 
     public static getInstance(): EmprestimoRepository {
         if (!this.instance) {
             this.instance = new EmprestimoRepository()
         }
         return this.instance
-    }
-
-    private async criarTabela(){
-        const query = `
-            CREATE TABLE IF NOT EXISTS Emprestimo (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                usuarioId INT NOT NULL,
-                estoqueId INT NOT NULL,
-                dataEmprestimo DATETIME NOT NULL,
-                dataDevolucao DATETIME,
-                dataEntrega DATETIME,
-                diasAtraso INT DEFAULT 0,
-                suspensaoAte DATETIME,
-                FOREIGN KEY (usuarioId) REFERENCES Usuario(id),
-                FOREIGN KEY (estoqueId) REFERENCES Estoque(id)
-            )
-        `;
-        try {
-            await executarComandoSQL(query, []);
-            console.log("Tabela Emprestimo verificada/criada com sucesso.");
-        } catch (err) {
-            console.error("Erro ao criar tabela Emprestimo:", err);
-        }
     }
 
     async cadastrar(emprestimo: Emprestimo): Promise<void> {
@@ -54,7 +29,7 @@ export class EmprestimoRepository{
         return await executarComandoSQL(query, params);
     }
 
-   async listar(): Promise<Emprestimo[]> {
+    async listar(): Promise<Emprestimo[]> {
         const query = `SELECT * FROM Emprestimo`;
         try {
             const resultado = await executarComandoSQL(query, []);
@@ -66,10 +41,28 @@ export class EmprestimoRepository{
     }
 
     async listarEmprestimosAtrasados(): Promise<Emprestimo[]> {
-        const query = `SELECT * FROM Emprestimo WHERE dataDevolucao IS NULL AND dataEmprestimo < CURDATE()`;
+        const query = ` SELECT *
+                    FROM emprestimos
+                    WHERE data_entrega IS NULL
+                    AND data_prevista_entrega < CURDATE()
+                    AND (data_ultima_validacao IS NULL OR DATE(data_ultima_validacao) < CURDATE())
+                    ORDER BY id
+                    LIMIT ?
+            `;
         try {
-            const resultado = await executarComandoSQL(query, []);
+            const TAMANHO_LOTE = 30;
+            const resultado: Emprestimo[] = await executarComandoSQL(query, [TAMANHO_LOTE]);
+            if (resultado.length === 0) {
+                return [];
+            }
+            const ids = resultado.map(r => r.id);
+            await executarComandoSQL(`
+                UPDATE emprestimos
+                SET data_ultima_validacao = NOW()
+                WHERE id IN (?)
+            `, [ids]);
             return resultado;
+
         } catch (err) {
             console.error("Erro ao retornar emprestimos atrasados:", err);
             return [];
@@ -85,7 +78,7 @@ export class EmprestimoRepository{
             console.error("Erro ao filtrar emprestimos por usuarioId:", err);
             return [];
         }
-        
+
     }
 
     async filtrarPorCamposEstoque(filtro: Partial<Emprestimo>): Promise<Emprestimo[]> {
@@ -123,7 +116,7 @@ export class EmprestimoRepository{
 
         const where = condicoes.length > 0 ? `WHERE ${condicoes.join(" AND ")}` : "";
         const query = `SELECT * FROM Emprestimo ${where}`;
-        
+
         try {
             const resultado = await executarComandoSQL(query, valores);
             return resultado;

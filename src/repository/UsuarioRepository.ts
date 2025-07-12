@@ -5,7 +5,6 @@ export class UsuarioRepository {
     private static instance: UsuarioRepository;
 
     private constructor() {
-        this.criarTabela();
     }
 
     public static getInstance(): UsuarioRepository {
@@ -13,27 +12,6 @@ export class UsuarioRepository {
             this.instance = new UsuarioRepository();
         }
         return this.instance;
-    }
-
-    private async criarTabela() {
-        const query = `
-            CREATE TABLE IF NOT EXISTS Usuario (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                nome VARCHAR(100) NOT NULL,
-                cpf VARCHAR(11) NOT NULL UNIQUE,
-                ativo ENUM('ATIVO', 'SUSPENSO', 'INATIVO') NOT NULL,
-                categoriaUsuario INT NOT NULL,
-                curso INT NOT NULL,
-                FOREIGN KEY (categoriaUsuario) REFERENCES CategoriaUsuario(id),
-                FOREIGN KEY (curso) REFERENCES Cursos(id)
-            )
-        `;
-        try {
-            await executarComandoSQL(query, []);
-            console.log("Tabela Usuario verificada/criada com sucesso.");
-        } catch (err) {
-            console.error("Erro ao criar tabela Usuario:", err);
-        }
     }
 
     async listar(): Promise<Usuario[]> {

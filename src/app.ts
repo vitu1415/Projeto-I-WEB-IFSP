@@ -3,19 +3,21 @@ import { iniciarVerificacaoDeAtrasos } from "./rotina/ValidadorDeAtrasos";
 import { conectarBanco } from "./database/mysql";
 import { RegisterRoutes } from "./route/routes";
 import { setupSwagger } from "./config/swagger";
+import { createTable } from "./database/createTable";
 
 const PORT = process.env.PORT || 3090;
 
 conectarBanco()
-    .then(() => {
+    .then(async () => {
         const app = express();
 
         app.use(express.json());
 
         const router = express.Router();
 
-        RegisterRoutes(router);
+        await createTable();
 
+        RegisterRoutes(router);
         app.use("/libary", router);
 
         setupSwagger(app);
