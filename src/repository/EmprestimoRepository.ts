@@ -3,9 +3,7 @@ import { executarComandoSQL } from "../database/mysql";
 
 export class EmprestimoRepository{
     private static instance: EmprestimoRepository
-    private constructor() { 
-        this.criarTabela()
-    }
+    private constructor() {}
 
     public static getInstance(): EmprestimoRepository {
         if (!this.instance) {
@@ -14,28 +12,28 @@ export class EmprestimoRepository{
         return this.instance
     }
 
-    private async criarTabela(){
-        const query = `
-            CREATE TABLE IF NOT EXISTS Emprestimo (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                usuarioId INT NOT NULL,
-                estoqueId INT NOT NULL,
-                dataEmprestimo DATETIME NOT NULL,
-                dataDevolucao DATETIME,
-                dataEntrega DATETIME,
-                diasAtraso INT DEFAULT 0,
-                suspensaoAte DATETIME,
-                FOREIGN KEY (usuarioId) REFERENCES Usuario(id),
-                FOREIGN KEY (estoqueId) REFERENCES Estoque(id)
-            )
-        `;
-        try {
-            await executarComandoSQL(query, []);
-            console.log("Tabela Emprestimo verificada/criada com sucesso.");
-        } catch (err) {
-            console.error("Erro ao criar tabela Emprestimo:", err);
-        }
-    }
+    // private async criarTabela(){
+    //     const query = `
+    //         CREATE TABLE IF NOT EXISTS Emprestimo (
+    //             id INT AUTO_INCREMENT PRIMARY KEY,
+    //             usuarioId INT NOT NULL,
+    //             estoqueId INT NOT NULL,
+    //             dataEmprestimo DATETIME NOT NULL,
+    //             dataDevolucao DATETIME,
+    //             dataEntrega DATETIME,
+    //             diasAtraso INT DEFAULT 0,
+    //             suspensaoAte DATETIME,
+    //             FOREIGN KEY (usuarioId) REFERENCES Usuario(id),
+    //             FOREIGN KEY (estoqueId) REFERENCES Estoque(id)
+    //         )
+    //     `;
+    //     try {
+    //         await executarComandoSQL(query, []);
+    //         console.log("Tabela Emprestimo verificada/criada com sucesso.");
+    //     } catch (err) {
+    //         console.error("Erro ao criar tabela Emprestimo:", err);
+    //     }
+    // }
 
     async cadastrar(emprestimo: Emprestimo): Promise<void> {
         const query = `
