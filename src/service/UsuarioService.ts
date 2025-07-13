@@ -133,7 +133,7 @@ export class UsuarioService {
 
         const hoje = new Date();
 
-        for (const usuario of usuarios) {
+        for (let usuario of usuarios) {
             const emprestimos = await serviceEmprestimo.listarEmprestimoPorUsuario(usuario.id);
 
             const suspensoes = emprestimos
