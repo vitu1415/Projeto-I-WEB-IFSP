@@ -4,6 +4,6 @@ export interface UsuarioRequestDTO {
   nome: string;
   cpf: string;
   ativo: CategoriaStatus;
-  categoriaUsuarioId: number;
-  cursoId: number;
+  categoriaUsuario: number;
+  curso: number;
 }

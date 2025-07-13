@@ -5,6 +5,7 @@ import { EmprestimoRepository } from "../repository/EmprestimoRepository";
 import { EstoqueService } from "./EstoqueService";
 import { FormatadorDate } from "../Utils/FormatadorDate";
 import { UsuarioService } from "./UsuarioService";
+import { CategoriaUsuario } from "../model/Catalogo/Entity/CategoriaUsuarioEntity";
 
 export class EmprestimoService {
     private repository = EmprestimoRepository.getInstance();
@@ -208,12 +209,13 @@ export class EmprestimoService {
 
     async verificadorDeAtraso() {
         const emprestimos = await this.repository.listarEmprestimosAtrasados();
+        const emprestimosCompleto = await this.listarEmprestimosCompletos(emprestimos);
         const hoje = new Date();
 
         const atrasosGravesPorUsuario: Record<string, number> = {};
 
-        emprestimos.forEach(emprestimo => {
-            const { dataEntrega, dataDevolucao, usuarioId, id } = emprestimo;
+        emprestimosCompleto.forEach(emprestimo => {
+            const { dataEntrega, dataDevolucao, usuario, id } = emprestimo;
 
             if (dataDevolucao === null && dataEntrega !== null) {
                 const diasDeAtraso = this.fomatadorData.diferencaEmDias(hoje, new Date(dataEntrega));
@@ -223,7 +225,7 @@ export class EmprestimoService {
                     this.repository.cadastrarSuspensao(id, this.fomatadorData.calcularSuspensaoAte(hoje, diasDeAtraso));
 
                     if (diasDeAtraso > 20) {
-                        const cpf = usuarioId.cpf;
+                        const cpf = usuario.cpf;
                         atrasosGravesPorUsuario[cpf] = (atrasosGravesPorUsuario[cpf] || 0) + 1;
                     }
                 }
@@ -232,15 +234,15 @@ export class EmprestimoService {
 
         for (const cpf in atrasosGravesPorUsuario) {
             const qtdAtrasos = atrasosGravesPorUsuario[cpf];
-            const usuario = await this.serviceUsuario.buscarUsuario(cpf);
+            let usuarioPorCPF = await this.serviceUsuario.buscarUsuario(cpf);
 
             if (qtdAtrasos >= 2) {
-                usuario.ativo = CategoriaStatus.INATIVO;
-            } else if (qtdAtrasos === 1 && usuario.ativo === CategoriaStatus.ATIVO) {
-                usuario.ativo = CategoriaStatus.SUSPENSO;
+                usuarioPorCPF.ativo = CategoriaStatus.INATIVO;
+            } else if (qtdAtrasos === 1 && usuarioPorCPF.ativo === CategoriaStatus.ATIVO) {
+                usuarioPorCPF.ativo = CategoriaStatus.SUSPENSO;
             }
 
-            this.serviceUsuario.atualizarUsuario(cpf, usuario);
+            await this.serviceUsuario.atualizarUsuario(cpf, usuarioPorCPF);
         }
     }
 

@@ -4,5 +4,5 @@ export interface LivroRequestDTO {
   editora: string;
   edicao: string;
   isbn: string;
-  categoriaLivroId: number;
+  categoriaLivro: number;
 }

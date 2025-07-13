@@ -42,9 +42,9 @@ export class EmprestimoRepository {
 
     async listarEmprestimosAtrasados(): Promise<Emprestimo[]> {
         const query = ` SELECT *
-                    FROM emprestimos
-                    WHERE data_entrega IS NULL
-                    AND data_prevista_entrega < CURDATE()
+                    FROM Emprestimo
+                    WHERE dataDevolucao IS NULL
+                    AND dataEntrega < CURDATE()
                     AND (data_ultima_validacao IS NULL OR DATE(data_ultima_validacao) < CURDATE())
                     ORDER BY id
                     LIMIT ?
@@ -57,7 +57,7 @@ export class EmprestimoRepository {
             }
             const ids = resultado.map(r => r.id);
             await executarComandoSQL(`
-                UPDATE emprestimos
+                UPDATE Emprestimo
                 SET data_ultima_validacao = NOW()
                 WHERE id IN (?)
             `, [ids]);
@@ -187,7 +187,7 @@ export class EmprestimoRepository {
         }
         const emprestimo = resultado[0];
         emprestimo.diasAtraso = diasAtraso;
-        await this.atualizar(emprestimo.id, emprestimo);
+        await this.atualizar(emprestimo.id, {diasAtraso: emprestimo.diasAtraso});
         return emprestimo;
     }
 

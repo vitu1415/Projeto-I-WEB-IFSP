@@ -6,10 +6,10 @@ export function iniciarVerificacaoDeAtrasos() {
     const usuarioService = new UsuarioService();
     const intervaloUmaHora = 60 * 60 * 1000;
 
-  setInterval(() => {
+  setInterval(async () => {
     console.log('Rodando verificação de atrasos...');
-    emprestimoService.verificadorDeAtraso();
+    await emprestimoService.verificadorDeAtraso();
     console.log('rodando verificação de usuários suspensos...');
-    usuarioService.reativarUsuariosSuspensos();
+    await usuarioService.reativarUsuariosSuspensos();
   }, intervaloUmaHora);
 }
