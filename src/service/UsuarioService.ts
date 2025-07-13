@@ -89,11 +89,11 @@ export class UsuarioService {
     async atualizarUsuario(cpf: any, usuarioData: any): Promise<any[]> {
         let { ativo, categoriaLivro, curso } = usuarioData;
         if (categoriaLivro) {
-            categoriaLivro = await this.categoriaUsuarioService.listarPorFiltro(categoriaLivro.id);
+            categoriaLivro = await this.categoriaUsuarioService.listarPorFiltro(categoriaLivro);
             if (!categoriaLivro) {
                 throw new Error("Categoria Usuario nao encontrada");
             }
-            usuarioData.categoriaUsuario = categoriaLivro;
+            usuarioData.categoriaUsuario = categoriaLivro[0].id;
         }
         if (ativo) {
             if (ativo !== "ATIVO" && ativo !== "INATIVO" && ativo !== "SUSPENSO") {
@@ -103,11 +103,11 @@ export class UsuarioService {
             }
         }
         if (curso) {
-            curso = await this.cursoSerivce.listarPorFiltro(curso.id);
+            curso = await this.cursoSerivce.listarPorFiltro(curso);
             if (!curso) {
                 throw new Error("Curso nao encontrado");
             }
-            usuarioData.curso = curso;
+            usuarioData.curso = curso[0].id;
         }
         await this.repository.atualizar(cpf, usuarioData);
         return await this.listarUsuarios({ cpf });
@@ -145,7 +145,7 @@ export class UsuarioService {
 
             if (suspensoes.length > 0 && !temAtrasoGraveAtual) {
                 usuario.ativo = CategoriaStatus.ATIVO;
-                this.atualizarUsuario(usuario.cpf, usuario);
+                await this.atualizarUsuario(usuario.cpf, usuario);
             }
         }
     };

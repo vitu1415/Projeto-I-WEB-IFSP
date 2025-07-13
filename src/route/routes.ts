@@ -31,8 +31,8 @@ const models: TsoaRoute.Models = {
             "nome": {"dataType":"string","required":true},
             "cpf": {"dataType":"string","required":true},
             "ativo": {"ref":"CategoriaStatus","required":true},
-            "categoriaUsuarioId": {"dataType":"double","required":true},
-            "cursoId": {"dataType":"double","required":true},
+            "categoriaUsuario": {"dataType":"double","required":true},
+            "curso": {"dataType":"double","required":true},
         },
         "additionalProperties": false,
     },
@@ -97,7 +97,7 @@ const models: TsoaRoute.Models = {
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "Partial_UsuarioRequestDTO_": {
         "dataType": "refAlias",
-        "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"nome":{"dataType":"string"},"cpf":{"dataType":"string"},"ativo":{"ref":"CategoriaStatus"},"categoriaUsuarioId":{"dataType":"double"},"cursoId":{"dataType":"double"}},"validators":{}},
+        "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"nome":{"dataType":"string"},"cpf":{"dataType":"string"},"ativo":{"ref":"CategoriaStatus"},"categoriaUsuario":{"dataType":"double"},"curso":{"dataType":"double"}},"validators":{}},
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "LivroRequestDTO": {
@@ -108,7 +108,7 @@ const models: TsoaRoute.Models = {
             "editora": {"dataType":"string","required":true},
             "edicao": {"dataType":"string","required":true},
             "isbn": {"dataType":"string","required":true},
-            "categoriaLivroId": {"dataType":"double","required":true},
+            "categoriaLivro": {"dataType":"double","required":true},
         },
         "additionalProperties": false,
     },
@@ -156,7 +156,7 @@ const models: TsoaRoute.Models = {
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "Partial_LivroRequestDTO_": {
         "dataType": "refAlias",
-        "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"titulo":{"dataType":"string"},"autor":{"dataType":"string"},"editora":{"dataType":"string"},"edicao":{"dataType":"string"},"isbn":{"dataType":"string"},"categoriaLivroId":{"dataType":"double"}},"validators":{}},
+        "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"titulo":{"dataType":"string"},"autor":{"dataType":"string"},"editora":{"dataType":"string"},"edicao":{"dataType":"string"},"isbn":{"dataType":"string"},"categoriaLivro":{"dataType":"double"}},"validators":{}},
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "EstoqueRequestDTO": {
